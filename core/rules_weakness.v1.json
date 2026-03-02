@@ -1,0 +1,650 @@
+{
+  "schema_version": "spektron.rules_weakness.v1",
+  "generated_at": "2026-02-25T18:00:00Z",
+  "stability": "FROZEN",
+  "rules": [
+    {
+      "rule_id": "rule:weakness:http_reachable:v1",
+      "weakness_id": "weakness:http_reachable",
+      "title": "HTTP reachable on internet",
+      "when": {
+        "all": [
+          {
+            "any": [
+              {
+                "evidence": "net.port.open",
+                "where": {
+                  "port": 80
+                }
+              },
+              {
+                "evidence": "net.service.http"
+              }
+            ]
+          },
+          {
+            "any": [
+              {
+                "evidence": "entry:internet_facing"
+              }
+            ]
+          }
+        ]
+      },
+      "confidence": "high",
+      "evidence_refs": [
+        "net.port.open:80",
+        "net.service.http"
+      ]
+    },
+    {
+      "rule_id": "rule:weakness:hsts_missing:v1",
+      "weakness_id": "weakness:hsts_missing",
+      "title": "HSTS missing over HTTPS",
+      "when": {
+        "all": [
+          {
+            "any": [
+              {
+                "evidence": "net.port.open",
+                "where": {
+                  "port": 443
+                }
+              },
+              {
+                "evidence": "net.service.https"
+              },
+              {
+                "evidence": "entry:https_reachable"
+              }
+            ]
+          },
+          {
+            "any": [
+              {
+                "evidence": "http.header.missing",
+                "where": {
+                  "name": "strict-transport-security"
+                }
+              },
+              {
+                "evidence": "http.header.missing",
+                "where": {
+                  "name": "Strict-Transport-Security"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "confidence": "high",
+      "evidence_refs": [
+        "http.header.missing:strict-transport-security"
+      ]
+    },
+    {
+      "rule_id": "rule:weakness:csp_missing:v1",
+      "weakness_id": "weakness:csp_missing",
+      "title": "CSP missing",
+      "when": {
+        "all": [
+          {
+            "any": [
+              {
+                "evidence": "entry:https_reachable"
+              },
+              {
+                "evidence": "entry:http_reachable"
+              }
+            ]
+          },
+          {
+            "any": [
+              {
+                "evidence": "http.header.missing",
+                "where": {
+                  "name": "content-security-policy"
+                }
+              },
+              {
+                "evidence": "http.header.missing",
+                "where": {
+                  "name": "Content-Security-Policy"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "confidence": "high",
+      "evidence_refs": [
+        "http.header.missing:content-security-policy"
+      ]
+    },
+    {
+      "rule_id": "rule:weakness:x_frame_options_missing:v1",
+      "weakness_id": "weakness:x_frame_options_missing",
+      "title": "X-Frame-Options missing",
+      "when": {
+        "all": [
+          {
+            "any": [
+              {
+                "evidence": "entry:https_reachable"
+              },
+              {
+                "evidence": "entry:http_reachable"
+              }
+            ]
+          },
+          {
+            "any": [
+              {
+                "evidence": "http.header.missing",
+                "where": {
+                  "name": "x-frame-options"
+                }
+              },
+              {
+                "evidence": "http.header.missing",
+                "where": {
+                  "name": "X-Frame-Options"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "confidence": "high",
+      "evidence_refs": [
+        "http.header.missing:x-frame-options"
+      ]
+    },
+    {
+      "rule_id": "rule:weakness:x_content_type_options_missing:v1",
+      "weakness_id": "weakness:x_content_type_options_missing",
+      "title": "X-Content-Type-Options missing",
+      "when": {
+        "all": [
+          {
+            "any": [
+              {
+                "evidence": "entry:https_reachable"
+              },
+              {
+                "evidence": "entry:http_reachable"
+              }
+            ]
+          },
+          {
+            "any": [
+              {
+                "evidence": "http.header.missing",
+                "where": {
+                  "name": "x-content-type-options"
+                }
+              },
+              {
+                "evidence": "http.header.missing",
+                "where": {
+                  "name": "X-Content-Type-Options"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "confidence": "high",
+      "evidence_refs": [
+        "http.header.missing:x-content-type-options"
+      ]
+    },
+    {
+      "rule_id": "rule:weakness:referrer_policy_missing:v1",
+      "weakness_id": "weakness:referrer_policy_missing",
+      "title": "Referrer-Policy missing",
+      "when": {
+        "all": [
+          {
+            "any": [
+              {
+                "evidence": "entry:https_reachable"
+              },
+              {
+                "evidence": "entry:http_reachable"
+              }
+            ]
+          },
+          {
+            "any": [
+              {
+                "evidence": "http.header.missing",
+                "where": {
+                  "name": "referrer-policy"
+                }
+              },
+              {
+                "evidence": "http.header.missing",
+                "where": {
+                  "name": "Referrer-Policy"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "confidence": "high",
+      "evidence_refs": [
+        "http.header.missing:referrer-policy"
+      ]
+    },
+    {
+      "rule_id": "rule:weakness:permissions_policy_missing:v1",
+      "weakness_id": "weakness:permissions_policy_missing",
+      "title": "Permissions-Policy missing",
+      "when": {
+        "all": [
+          {
+            "any": [
+              {
+                "evidence": "entry:https_reachable"
+              },
+              {
+                "evidence": "entry:http_reachable"
+              }
+            ]
+          },
+          {
+            "any": [
+              {
+                "evidence": "http.header.missing",
+                "where": {
+                  "name": "permissions-policy"
+                }
+              },
+              {
+                "evidence": "http.header.missing",
+                "where": {
+                  "name": "Permissions-Policy"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "confidence": "medium",
+      "evidence_refs": [
+        "http.header.missing:permissions-policy"
+      ]
+    },
+    {
+      "rule_id": "rule:weakness:tls_weak_version:v1",
+      "weakness_id": "weakness:tls_weak_version",
+      "title": "Weak TLS version observed",
+      "when": {
+        "all": [
+          {
+            "any": [
+              {
+                "evidence": "entry:https_reachable"
+              },
+              {
+                "evidence": "tls.present",
+                "where": {
+                  "present": true
+                }
+              }
+            ]
+          },
+          {
+            "any": [
+              {
+                "evidence": "tls.version",
+                "where": {
+                  "version": "TLS 1.0"
+                }
+              },
+              {
+                "evidence": "tls.version",
+                "where": {
+                  "version": "TLS 1.1"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "confidence": "high",
+      "evidence_refs": [
+        "tls.version"
+      ]
+    },
+    {
+      "rule_id": "rule:weakness:tls_unverified:v1",
+      "weakness_id": "weakness:tls_unverified",
+      "title": "TLS certificate not verified",
+      "when": {
+        "all": [
+          {
+            "any": [
+              {
+                "evidence": "entry:https_reachable"
+              },
+              {
+                "evidence": "tls.present",
+                "where": {
+                  "present": true
+                }
+              }
+            ]
+          },
+          {
+            "any": [
+              {
+                "evidence": "tls.verify",
+                "where": {
+                  "verified": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "confidence": "high",
+      "evidence_refs": [
+        "tls.verify:false"
+      ]
+    },
+    {
+      "rule_id": "rule:weakness:tls_self_signed:v1",
+      "weakness_id": "weakness:tls_self_signed",
+      "title": "Self-signed certificate",
+      "when": {
+        "all": [
+          {
+            "any": [
+              {
+                "evidence": "entry:https_reachable"
+              },
+              {
+                "evidence": "tls.present",
+                "where": {
+                  "present": true
+                }
+              }
+            ]
+          },
+          {
+            "any": [
+              {
+                "evidence": "tls.cert.chain",
+                "where": {
+                  "is_self_signed": true
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "confidence": "high",
+      "evidence_refs": [
+        "tls.cert.chain:is_self_signed"
+      ]
+    },
+    {
+      "rule_id": "rule:weakness:cert_expiring_soon:v1",
+      "weakness_id": "weakness:cert_expiring_soon",
+      "title": "Certificate expiring soon",
+      "when": {
+        "all": [
+          {
+            "any": [
+              {
+                "evidence": "entry:https_reachable"
+              }
+            ]
+          },
+          {
+            "any": [
+              {
+                "evidence": "tls.cert.expiry_days",
+                "where": {
+                  "days": {
+                    "lte": 14
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "confidence": "high",
+      "evidence_refs": [
+        "tls.cert.expiry_days<=14"
+      ]
+    },
+    {
+      "rule_id": "rule:weakness:cookies_without_secure:v1",
+      "weakness_id": "weakness:cookies_without_secure",
+      "title": "Cookies without Secure flag",
+      "when": {
+        "all": [
+          {
+            "any": [
+              {
+                "evidence": "entry:https_reachable"
+              }
+            ]
+          },
+          {
+            "any": [
+              {
+                "evidence": "http.cookie.set",
+                "where": {
+                  "secure": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "confidence": "medium",
+      "evidence_refs": [
+        "http.cookie.set:secure=false"
+      ]
+    },
+    {
+      "rule_id": "rule:weakness:cookies_without_httponly:v1",
+      "weakness_id": "weakness:cookies_without_httponly",
+      "title": "Cookies without HttpOnly flag",
+      "when": {
+        "all": [
+          {
+            "any": [
+              {
+                "evidence": "entry:https_reachable"
+              },
+              {
+                "evidence": "entry:http_reachable"
+              }
+            ]
+          },
+          {
+            "any": [
+              {
+                "evidence": "http.cookie.set",
+                "where": {
+                  "httponly": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "confidence": "medium",
+      "evidence_refs": [
+        "http.cookie.set:httponly=false"
+      ]
+    },
+    {
+      "rule_id": "rule:weakness:cookies_samesite_missing:v1",
+      "weakness_id": "weakness:cookies_samesite_missing",
+      "title": "Cookies without SameSite",
+      "when": {
+        "all": [
+          {
+            "any": [
+              {
+                "evidence": "entry:https_reachable"
+              },
+              {
+                "evidence": "entry:http_reachable"
+              }
+            ]
+          },
+          {
+            "any": [
+              {
+                "evidence": "http.cookie.set",
+                "where": {
+                  "samesite": null
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "confidence": "low",
+      "evidence_refs": [
+        "http.cookie.set:samesite=null"
+      ]
+    },
+    {
+      "rule_id": "rule:weakness:server_banner_exposed:v1",
+      "weakness_id": "weakness:server_banner_exposed",
+      "title": "Server banner exposed",
+      "when": {
+        "any": [
+          {
+            "evidence": "http.banner.server"
+          }
+        ]
+      },
+      "confidence": "high",
+      "evidence_refs": [
+        "http.banner.server"
+      ]
+    },
+    {
+      "rule_id": "rule:weakness:powered_by_exposed:v1",
+      "weakness_id": "weakness:powered_by_exposed",
+      "title": "X-Powered-By banner exposed",
+      "when": {
+        "any": [
+          {
+            "evidence": "http.banner.powered_by"
+          }
+        ]
+      },
+      "confidence": "high",
+      "evidence_refs": [
+        "http.banner.powered_by"
+      ]
+    },
+    {
+      "rule_id": "rule:weakness:cloud_public_exposure:v1",
+      "weakness_id": "weakness:cloud_public_exposure",
+      "title": "Public cloud exposure",
+      "when": {
+        "any": [
+          {
+            "evidence": "cloud.ip_match"
+          }
+        ]
+      },
+      "confidence": "medium",
+      "evidence_refs": [
+        "cloud.ip_match"
+      ]
+    },
+    {
+      "rule_id": "rule:weakness:oauth_discovery_exposed:v1",
+      "weakness_id": "weakness:oauth_discovery_exposed",
+      "title": "OAuth/OIDC discovery endpoint exposed",
+      "when": {
+        "any": [
+          {
+            "evidence": "http.status",
+            "where": {
+              "url": {
+                "contains": ".well-known/openid-configuration"
+              }
+            }
+          },
+          {
+            "evidence": "http.status",
+            "where": {
+              "url": {
+                "contains": ".well-known/oauth-authorization-server"
+              }
+            }
+          }
+        ]
+      },
+      "confidence": "low",
+      "evidence_refs": [
+        "http.status:.well-known/*"
+      ]
+    },
+    {
+      "rule_id": "rule:weakness:missing_security_txt:v1",
+      "weakness_id": "weakness:missing_security_txt",
+      "title": "security.txt missing",
+      "when": {
+        "all": [
+          {
+            "any": [
+              {
+                "evidence": "entry:https_reachable"
+              },
+              {
+                "evidence": "entry:http_reachable"
+              }
+            ]
+          },
+          {
+            "any": [
+              {
+                "evidence": "http.status",
+                "where": {
+                  "url": {
+                    "contains": "/.well-known/security.txt"
+                  },
+                  "status": 404
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "confidence": "medium",
+      "evidence_refs": [
+        "http.status:/.well-known/security.txt=404"
+      ]
+    }
+  ],
+  "rule_language": {
+    "operators": [
+      "all",
+      "any"
+    ],
+    "comparators": [
+      "eq",
+      "neq",
+      "lte",
+      "gte",
+      "contains"
+    ],
+    "notes": "Rules are deterministic and must be satisfiable by passive evidence only."
+  }
+}

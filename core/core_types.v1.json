@@ -1,0 +1,238 @@
+{
+  "schema_version": "spektron.core_types.v1",
+  "generated_at": "2026-02-25T18:00:00Z",
+  "stability": "FROZEN",
+  "id_conventions": {
+    "pattern": "^[a-z]+:[a-z0-9_.-]+$",
+    "examples": [
+      "evidence:http.header.missing.hsts",
+      "weakness:hsts_missing",
+      "entry:http_reachable",
+      "impact:account_takeover",
+      "control:enable_hsts",
+      "technique:mitre:T1557.002",
+      "rule:weakness:hsts_missing:v1"
+    ]
+  },
+  "enums": {
+    "severity": [
+      "info",
+      "low",
+      "medium",
+      "high",
+      "critical"
+    ],
+    "confidence": [
+      "very_low",
+      "low",
+      "medium",
+      "high",
+      "very_high"
+    ],
+    "cia": [
+      "confidentiality",
+      "integrity",
+      "availability"
+    ],
+    "impact_tier": [
+      "minor",
+      "moderate",
+      "major",
+      "severe"
+    ],
+    "evidence_strength": [
+      "weak",
+      "moderate",
+      "strong"
+    ],
+    "relation_type": [
+      "supports",
+      "contradicts",
+      "enables",
+      "mitigates",
+      "maps_to",
+      "references"
+    ],
+    "exposure_level": [
+      "internal",
+      "restricted",
+      "internet"
+    ],
+    "asset_kind": [
+      "host",
+      "domain",
+      "url",
+      "ip"
+    ],
+    "service_kind": [
+      "http",
+      "https",
+      "tls",
+      "dns",
+      "other"
+    ],
+    "path_stage": [
+      "entry",
+      "weakness",
+      "technique",
+      "impact",
+      "controls"
+    ]
+  },
+  "types": {
+    "Evidence": {
+      "required": [
+        "id",
+        "type",
+        "value",
+        "source",
+        "strength",
+        "timestamp"
+      ],
+      "fields": {
+        "id": "string",
+        "type": "string",
+        "value": "object",
+        "source": "object",
+        "strength": "evidence_strength",
+        "timestamp": "string (ISO8601)",
+        "privacy_class": "string (public|restricted|secret)",
+        "tags": "string[]"
+      }
+    },
+    "EntryCondition": {
+      "required": [
+        "id",
+        "entry_id",
+        "title",
+        "evidence_refs",
+        "confidence"
+      ],
+      "fields": {
+        "id": "string",
+        "entry_id": "string",
+        "title": "string",
+        "evidence_refs": "string[]",
+        "confidence": "confidence"
+      }
+    },
+    "Weakness": {
+      "required": [
+        "id",
+        "weakness_id",
+        "title",
+        "category",
+        "cia",
+        "base_likelihood",
+        "evidence_refs",
+        "confidence"
+      ],
+      "fields": {
+        "id": "string",
+        "weakness_id": "string",
+        "title": "string",
+        "category": "string",
+        "cia": "cia[]",
+        "base_likelihood": "number (0..1)",
+        "evidence_refs": "string[]",
+        "confidence": "confidence",
+        "references": "object",
+        "remediation_refs": "string[]"
+      }
+    },
+    "KnownVulnerability": {
+      "required": [
+        "id",
+        "cve_id",
+        "title",
+        "cvss",
+        "affected_component",
+        "evidence_refs",
+        "confidence"
+      ],
+      "fields": {
+        "id": "string",
+        "cve_id": "string",
+        "title": "string",
+        "cvss": "object",
+        "affected_component": "object",
+        "evidence_refs": "string[]",
+        "confidence": "confidence",
+        "references": "object"
+      }
+    },
+    "TechniqueRef": {
+      "required": [
+        "id",
+        "technique_id",
+        "title",
+        "framework",
+        "confidence"
+      ],
+      "fields": {
+        "id": "string",
+        "technique_id": "string",
+        "title": "string",
+        "framework": "string (mitre|capec|custom)",
+        "confidence": "confidence",
+        "references": "object"
+      }
+    },
+    "Impact": {
+      "required": [
+        "id",
+        "impact_id",
+        "title",
+        "cia",
+        "tier",
+        "base_weight"
+      ],
+      "fields": {
+        "id": "string",
+        "impact_id": "string",
+        "title": "string",
+        "cia": "cia[]",
+        "tier": "impact_tier",
+        "base_weight": "number (0..1)"
+      }
+    },
+    "Control": {
+      "required": [
+        "id",
+        "control_id",
+        "title",
+        "kind",
+        "effect"
+      ],
+      "fields": {
+        "id": "string",
+        "control_id": "string",
+        "title": "string",
+        "kind": "string (prevent|detect|respond|compensate)",
+        "effect": "object",
+        "references": "object"
+      }
+    },
+    "AttackPath": {
+      "required": [
+        "id",
+        "title",
+        "entry",
+        "weakness",
+        "technique",
+        "impact",
+        "score"
+      ],
+      "fields": {
+        "id": "string",
+        "title": "string",
+        "entry": "EntryCondition",
+        "weakness": "Weakness|KnownVulnerability",
+        "technique": "TechniqueRef",
+        "impact": "Impact",
+        "controls": "Control[]",
+        "score": "object"
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+requests
+pydantic
+pyyaml
+orjson
+stix2
+taxii2-client
+httpx
+dnspython
+cryptography
+tldextract
+networkx
+rich
+typer
+loguru
+python-dotenv

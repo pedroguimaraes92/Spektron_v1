@@ -1,0 +1,206 @@
+{
+  "schema_version": "spektron.evidence_types.v1",
+  "generated_at": "2026-02-25T18:00:00Z",
+  "stability": "FROZEN",
+  "evidence_types": [
+    {
+      "type": "net.port.open",
+      "title": "Open port observed",
+      "value_schema": {
+        "port": "int",
+        "proto": "tcp|udp",
+        "service_hint": "string|null"
+      }
+    },
+    {
+      "type": "net.service.http",
+      "title": "HTTP service observed",
+      "value_schema": {
+        "url": "string",
+        "status": "int|null",
+        "redirect_to": "string|null"
+      }
+    },
+    {
+      "type": "net.service.https",
+      "title": "HTTPS service observed",
+      "value_schema": {
+        "url": "string",
+        "status": "int|null"
+      }
+    },
+    {
+      "type": "dns.record.a",
+      "title": "DNS A record",
+      "value_schema": {
+        "host": "string",
+        "ip": "string"
+      }
+    },
+    {
+      "type": "dns.record.aaaa",
+      "title": "DNS AAAA record",
+      "value_schema": {
+        "host": "string",
+        "ip": "string"
+      }
+    },
+    {
+      "type": "dns.record.cname",
+      "title": "DNS CNAME record",
+      "value_schema": {
+        "host": "string",
+        "cname": "string"
+      }
+    },
+    {
+      "type": "dns.record.txt",
+      "title": "DNS TXT record",
+      "value_schema": {
+        "host": "string",
+        "txt": "string"
+      }
+    },
+    {
+      "type": "tls.present",
+      "title": "TLS present",
+      "value_schema": {
+        "present": "bool"
+      }
+    },
+    {
+      "type": "tls.version",
+      "title": "TLS negotiated version",
+      "value_schema": {
+        "version": "string"
+      }
+    },
+    {
+      "type": "tls.verify",
+      "title": "TLS certificate verification result",
+      "value_schema": {
+        "verified": "bool",
+        "error": "string|null"
+      }
+    },
+    {
+      "type": "tls.cipher_suite",
+      "title": "TLS cipher suite",
+      "value_schema": {
+        "name": "string"
+      }
+    },
+    {
+      "type": "tls.cert.expiry_days",
+      "title": "Certificate expiry in days",
+      "value_schema": {
+        "days": "int"
+      }
+    },
+    {
+      "type": "tls.cert.chain",
+      "title": "Certificate chain info",
+      "value_schema": {
+        "is_self_signed": "bool",
+        "has_intermediate": "bool|null"
+      }
+    },
+    {
+      "type": "http.status",
+      "title": "HTTP status code",
+      "value_schema": {
+        "url": "string",
+        "status": "int"
+      }
+    },
+    {
+      "type": "http.redirect.chain",
+      "title": "Redirect chain observed",
+      "value_schema": {
+        "hops": "int",
+        "from": "string",
+        "to": "string",
+        "includes_http": "bool",
+        "includes_https": "bool"
+      }
+    },
+    {
+      "type": "http.header.present",
+      "title": "HTTP header present",
+      "value_schema": {
+        "url": "string",
+        "name": "string",
+        "value": "string"
+      }
+    },
+    {
+      "type": "http.header.missing",
+      "title": "HTTP header missing",
+      "value_schema": {
+        "url": "string",
+        "name": "string"
+      }
+    },
+    {
+      "type": "http.cookie.set",
+      "title": "Set-Cookie observed",
+      "value_schema": {
+        "name": "string",
+        "secure": "bool|null",
+        "httponly": "bool|null",
+        "samesite": "string|null"
+      }
+    },
+    {
+      "type": "http.banner.server",
+      "title": "Server banner",
+      "value_schema": {
+        "value": "string"
+      }
+    },
+    {
+      "type": "http.banner.powered_by",
+      "title": "X-Powered-By banner",
+      "value_schema": {
+        "value": "string"
+      }
+    },
+    {
+      "type": "tech.detected",
+      "title": "Technology detected",
+      "value_schema": {
+        "name": "string",
+        "version": "string|null",
+        "confidence": "low|medium|high"
+      }
+    },
+    {
+      "type": "cloud.ip_match",
+      "title": "Cloud provider IP match",
+      "value_schema": {
+        "provider": "aws|azure|gcp|other",
+        "region": "string|null",
+        "service": "string|null"
+      }
+    }
+  ],
+  "privacy_classes": [
+    "public",
+    "restricted",
+    "secret"
+  ],
+  "default_strength": {
+    "net.port.open": "strong",
+    "net.service.http": "strong",
+    "net.service.https": "strong",
+    "dns.record.a": "moderate",
+    "dns.record.cname": "moderate",
+    "tls.version": "strong",
+    "tls.verify": "strong",
+    "http.header.present": "strong",
+    "http.header.missing": "strong",
+    "http.cookie.set": "strong",
+    "tech.detected": "moderate",
+    "cloud.ip_match": "moderate"
+  }
+}

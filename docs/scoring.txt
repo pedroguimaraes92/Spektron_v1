@@ -1,0 +1,58 @@
+# Spektron Scoring Model
+
+## Overview
+
+Spektron introduces an attack-path-centric scoring model that separates **difficulty** from **impact**, avoiding distortion caused by isolated severity metrics.
+
+---
+
+## PathDifficulty (0–10)
+
+PathDifficulty represents the operational effort required to execute the full attack chain.
+
+Factors considered:
+
+* Number of chained steps
+* Authentication barriers
+* User interaction requirements
+* Reliability of techniques
+* Automation feasibility
+
+Low scores indicate trivial, highly reliable paths. High scores indicate complex, fragile, or constrained paths.
+
+---
+
+## PathImpact (0–10)
+
+PathImpact represents the severity of the final outcome achievable through the attack path.
+
+Factors considered:
+
+* Data exposure
+* Privilege escalation
+* System compromise
+* Business impact
+
+PathImpact is independent of execution difficulty.
+
+---
+
+## Relationship with CVSS and VPR
+
+CVSS and VPR are treated as **input references**, not decision drivers.
+
+Spektron prioritizes remediation based on:
+
+* High impact, low difficulty paths
+* Medium impact paths enabled by weak controls
+* Accumulated risk through multiple medium findings
+
+---
+
+## Priority Classification
+
+Final priority is derived from:
+
+PathPriority = f(PathDifficulty, PathImpact, Confidence)
+
+This enables actionable prioritization without overestimating speculative risk.

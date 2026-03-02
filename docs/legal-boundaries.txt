@@ -1,0 +1,47 @@
+# Legal and Ethical Boundaries
+
+## Purpose
+
+This document defines the legal and ethical operating boundaries of Spektron.
+
+---
+
+## Allowed Activities
+
+* Passive HTTP inspection
+* TLS/SSL certificate analysis
+* Header and metadata evaluation
+* Public file discovery (robots.txt, security.txt)
+* Technology fingerprinting
+* Public API surface enumeration
+
+---
+
+## Explicitly Prohibited Activities
+
+* Exploitation of vulnerabilities
+* Payload delivery or execution
+* Authentication bypass attempts
+* Brute-force or fuzzing
+* State-changing requests
+* Denial-of-service techniques
+
+---
+
+## Data Handling
+
+Spektron does not collect credentials, personal data, or session material.
+
+All findings are derived from publicly observable information.
+
+---
+
+## Intended Use
+
+Spektron is intended for:
+
+* Authorized security assessments
+* Defensive security research
+* Risk analysis and prioritization
+
+Misuse of the platform is explicitly discouraged and unsupported.

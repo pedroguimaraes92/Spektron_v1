@@ -1,0 +1,153 @@
+{
+  "schema_version": "spektron.rules_entry.v1",
+  "generated_at": "2026-02-25T18:00:00Z",
+  "stability": "FROZEN",
+  "entries": [
+    {
+      "entry_id": "entry:http_reachable",
+      "title": "HTTP reachable (internet-facing)",
+      "description": "Target is reachable via plain HTTP, enabling downgrade and interception scenarios.",
+      "evidence_requirements": [
+        {
+          "any_of": [
+            {
+              "type": "net.port.open",
+              "match": {
+                "port": 80
+              }
+            },
+            {
+              "type": "net.service.http"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "entry:https_reachable",
+      "title": "HTTPS reachable",
+      "description": "Target is reachable via HTTPS.",
+      "evidence_requirements": [
+        {
+          "any_of": [
+            {
+              "type": "net.port.open",
+              "match": {
+                "port": 443
+              }
+            },
+            {
+              "type": "net.service.https"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "entry:internet_facing",
+      "title": "Internet-facing asset",
+      "description": "Asset appears reachable from public internet (default assumption for external scanning).",
+      "evidence_requirements": [
+        {
+          "any_of": [
+            {
+              "type": "net.service.http"
+            },
+            {
+              "type": "net.service.https"
+            },
+            {
+              "type": "net.port.open"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "entry:cloud_provider_public",
+      "title": "Public cloud provider exposure",
+      "description": "Observed IP belongs to a major cloud provider public range.",
+      "evidence_requirements": [
+        {
+          "any_of": [
+            {
+              "type": "cloud.ip_match"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "rule_set": [
+    {
+      "rule_id": "rule:entry:http_reachable:v1",
+      "produces": "EntryCondition",
+      "entry_id": "entry:http_reachable",
+      "when": {
+        "any": [
+          {
+            "evidence": "net.port.open",
+            "where": {
+              "port": 80
+            }
+          },
+          {
+            "evidence": "net.service.http"
+          }
+        ]
+      },
+      "confidence": "high"
+    },
+    {
+      "rule_id": "rule:entry:https_reachable:v1",
+      "produces": "EntryCondition",
+      "entry_id": "entry:https_reachable",
+      "when": {
+        "any": [
+          {
+            "evidence": "net.port.open",
+            "where": {
+              "port": 443
+            }
+          },
+          {
+            "evidence": "net.service.https"
+          }
+        ]
+      },
+      "confidence": "high"
+    },
+    {
+      "rule_id": "rule:entry:internet_facing:v1",
+      "produces": "EntryCondition",
+      "entry_id": "entry:internet_facing",
+      "when": {
+        "any": [
+          {
+            "evidence": "net.service.http"
+          },
+          {
+            "evidence": "net.service.https"
+          },
+          {
+            "evidence": "net.port.open"
+          }
+        ]
+      },
+      "confidence": "medium"
+    },
+    {
+      "rule_id": "rule:entry:cloud_provider_public:v1",
+      "produces": "EntryCondition",
+      "entry_id": "entry:cloud_provider_public",
+      "when": {
+        "any": [
+          {
+            "evidence": "cloud.ip_match"
+          }
+        ]
+      },
+      "confidence": "medium"
+    }
+  ]
+}

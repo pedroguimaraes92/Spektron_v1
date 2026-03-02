@@ -1,0 +1,38 @@
+{
+  "schema_version": "spektron.path_policy.v1",
+  "generated_at": "2026-02-25T18:00:00Z",
+  "stability": "FROZEN",
+  "path_model": {
+    "stages": [
+      "entry",
+      "weakness",
+      "technique",
+      "impact",
+      "controls"
+    ],
+    "linear_only": true,
+    "max_paths_per_target": 50,
+    "deduplication": {
+      "key": "entry.entry_id + weakness.weakness_id + impact.impact_id",
+      "keep": "highest_score"
+    }
+  },
+  "impact_selection": {
+    "strategy": "weakness.impact_hints_first_else_default",
+    "default_impact": "impact:information_disclosure"
+  },
+  "technique_selection": {
+    "strategy": "mapping_first_else_fallback",
+    "fallback": {
+      "framework": "custom",
+      "technique_id": "custom:unknown",
+      "title": "Unspecified exploitation technique",
+      "confidence": "very_low"
+    }
+  },
+  "control_selection": {
+    "strategy": "mappings_controls + control_catalog",
+    "max_controls_per_path": 6,
+    "prioritization": "controls_that_cut_entry_or_weakness_first"
+  }
+}

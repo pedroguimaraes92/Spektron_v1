@@ -1,0 +1,81 @@
+{
+  "schema_version": "spektron.scoring_policy.v1",
+  "generated_at": "2026-02-25T18:00:00Z",
+  "stability": "FROZEN",
+  "attack_path_score": {
+    "scale": "0-100",
+    "formula": "score = round(100 * clamp01(likelihood * impact_weight * exposure_multiplier))",
+    "components": {
+      "likelihood": {
+        "base": "weakness.base_likelihood",
+        "adjusters": [
+          {
+            "name": "evidence_strength",
+            "method": "weak=0.85, moderate=1.0, strong=1.1"
+          },
+          {
+            "name": "confidence",
+            "method": "very_low=0.75, low=0.85, medium=1.0, high=1.1, very_high=1.2"
+          },
+          {
+            "name": "cve_present",
+            "method": "if KnownVulnerability then *1.25"
+          },
+          {
+            "name": "internet_facing",
+            "method": "if entry:internet_facing then *1.1"
+          },
+          {
+            "name": "http_reachable",
+            "method": "if entry:http_reachable then *1.08"
+          }
+        ]
+      },
+      "impact_weight": {
+        "base": "impact.base_weight",
+        "adjusters": [
+          {
+            "name": "asset_criticality",
+            "method": "low=0.85, medium=1.0, high=1.2, critical=1.35"
+          }
+        ]
+      },
+      "exposure_multiplier": {
+        "base": "1.0",
+        "adjusters": [
+          {
+            "name": "cloud_public",
+            "method": "if entry:cloud_provider_public then +0.05"
+          },
+          {
+            "name": "tls_invalid",
+            "method": "if weakness:tls_unverified then +0.05"
+          }
+        ],
+        "clamp": "0.8..1.25"
+      }
+    },
+    "bucket_thresholds": [
+      {
+        "label": "Low",
+        "min": 0,
+        "max": 24
+      },
+      {
+        "label": "Medium",
+        "min": 25,
+        "max": 49
+      },
+      {
+        "label": "High",
+        "min": 50,
+        "max": 74
+      },
+      {
+        "label": "Critical",
+        "min": 75,
+        "max": 100
+      }
+    ]
+  }
+}

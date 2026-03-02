@@ -1,0 +1,378 @@
+{
+  "schema_version": "spektron.control_catalog.v1",
+  "generated_at": "2026-02-25T18:00:00Z",
+  "stability": "FROZEN",
+  "controls": [
+    {
+      "control_id": "control:disable_http",
+      "title": "Disable HTTP service (port 80)",
+      "kind": "prevent",
+      "effect": {
+        "cuts_entries": [
+          "entry:http_reachable"
+        ],
+        "mitigates_weaknesses": [
+          "weakness:http_reachable"
+        ]
+      },
+      "references": {
+        "asvs": [
+          "V14.2.4"
+        ],
+        "rfc": [
+          "RFC 9110"
+        ]
+      }
+    },
+    {
+      "control_id": "control:force_https_redirect",
+      "title": "Force HTTP→HTTPS redirect with no downgrade",
+      "kind": "prevent",
+      "effect": {
+        "reduces_entry_likelihood": [
+          "entry:http_reachable"
+        ]
+      },
+      "references": {
+        "asvs": [
+          "V14.2.4"
+        ],
+        "rfc": [
+          "RFC 9110"
+        ]
+      }
+    },
+    {
+      "control_id": "control:enable_hsts",
+      "title": "Enable HSTS (includeSubDomains, preload when eligible)",
+      "kind": "prevent",
+      "effect": {
+        "mitigates_weaknesses": [
+          "weakness:hsts_missing"
+        ],
+        "reduces_entry_likelihood": [
+          "entry:http_reachable"
+        ]
+      },
+      "references": {
+        "asvs": [
+          "V14.2.5"
+        ],
+        "rfc": [
+          "RFC 6797"
+        ]
+      }
+    },
+    {
+      "control_id": "control:deploy_csp",
+      "title": "Deploy a strict Content-Security-Policy (CSP)",
+      "kind": "prevent",
+      "effect": {
+        "mitigates_weaknesses": [
+          "weakness:csp_missing"
+        ]
+      },
+      "references": {
+        "asvs": [
+          "V14.4.5"
+        ],
+        "owasp": [
+          "A03:2021"
+        ]
+      }
+    },
+    {
+      "control_id": "control:x_frame_options",
+      "title": "Set X-Frame-Options or CSP frame-ancestors",
+      "kind": "prevent",
+      "effect": {
+        "mitigates_weaknesses": [
+          "weakness:x_frame_options_missing"
+        ]
+      },
+      "references": {
+        "asvs": [
+          "V14.4.4"
+        ],
+        "owasp": [
+          "A05:2021"
+        ]
+      }
+    },
+    {
+      "control_id": "control:x_content_type_options",
+      "title": "Set X-Content-Type-Options: nosniff",
+      "kind": "prevent",
+      "effect": {
+        "mitigates_weaknesses": [
+          "weakness:x_content_type_options_missing"
+        ]
+      },
+      "references": {
+        "asvs": [
+          "V14.4.3"
+        ],
+        "owasp": [
+          "A05:2021"
+        ]
+      }
+    },
+    {
+      "control_id": "control:referrer_policy",
+      "title": "Set Referrer-Policy",
+      "kind": "prevent",
+      "effect": {
+        "mitigates_weaknesses": [
+          "weakness:referrer_policy_missing"
+        ]
+      },
+      "references": {
+        "asvs": [
+          "V14.4.6"
+        ],
+        "owasp": [
+          "A01:2021"
+        ]
+      }
+    },
+    {
+      "control_id": "control:permissions_policy",
+      "title": "Set Permissions-Policy (feature hardening)",
+      "kind": "prevent",
+      "effect": {
+        "mitigates_weaknesses": [
+          "weakness:permissions_policy_missing"
+        ]
+      },
+      "references": {
+        "asvs": [
+          "V14.4.7"
+        ]
+      }
+    },
+    {
+      "control_id": "control:disable_legacy_tls",
+      "title": "Disable legacy TLS (1.0/1.1) and weak configurations",
+      "kind": "prevent",
+      "effect": {
+        "mitigates_weaknesses": [
+          "weakness:tls_weak_version"
+        ]
+      },
+      "references": {
+        "asvs": [
+          "V14.2.2"
+        ],
+        "rfc": [
+          "RFC 8996"
+        ]
+      }
+    },
+    {
+      "control_id": "control:fix_tls_chain",
+      "title": "Fix TLS certificate chain and hostname validation issues",
+      "kind": "prevent",
+      "effect": {
+        "mitigates_weaknesses": [
+          "weakness:tls_unverified"
+        ]
+      },
+      "references": {
+        "asvs": [
+          "V14.2.1"
+        ]
+      }
+    },
+    {
+      "control_id": "control:use_trusted_ca",
+      "title": "Use a trusted CA-issued certificate",
+      "kind": "prevent",
+      "effect": {
+        "mitigates_weaknesses": [
+          "weakness:tls_self_signed"
+        ]
+      },
+      "references": {
+        "asvs": [
+          "V14.2.1"
+        ]
+      }
+    },
+    {
+      "control_id": "control:renew_certificate",
+      "title": "Renew certificate before expiry (automation recommended)",
+      "kind": "prevent",
+      "effect": {
+        "mitigates_weaknesses": [
+          "weakness:cert_expiring_soon"
+        ]
+      },
+      "references": {
+        "asvs": [
+          "V14.2.1"
+        ]
+      }
+    },
+    {
+      "control_id": "control:cookie_secure",
+      "title": "Set Secure flag on cookies",
+      "kind": "prevent",
+      "effect": {
+        "mitigates_weaknesses": [
+          "weakness:cookies_without_secure"
+        ]
+      },
+      "references": {
+        "asvs": [
+          "V3.4.2"
+        ],
+        "owasp": [
+          "A07:2021"
+        ]
+      }
+    },
+    {
+      "control_id": "control:cookie_httponly",
+      "title": "Set HttpOnly flag on cookies",
+      "kind": "prevent",
+      "effect": {
+        "mitigates_weaknesses": [
+          "weakness:cookies_without_httponly"
+        ]
+      },
+      "references": {
+        "asvs": [
+          "V3.4.2"
+        ],
+        "owasp": [
+          "A07:2021"
+        ]
+      }
+    },
+    {
+      "control_id": "control:cookie_samesite",
+      "title": "Set SameSite on cookies (Lax/Strict as applicable)",
+      "kind": "prevent",
+      "effect": {
+        "mitigates_weaknesses": [
+          "weakness:cookies_samesite_missing"
+        ]
+      },
+      "references": {
+        "asvs": [
+          "V3.4.3"
+        ],
+        "owasp": [
+          "A01:2021"
+        ]
+      }
+    },
+    {
+      "control_id": "control:remove_server_banner",
+      "title": "Remove/obfuscate Server banner",
+      "kind": "prevent",
+      "effect": {
+        "mitigates_weaknesses": [
+          "weakness:server_banner_exposed"
+        ]
+      },
+      "references": {
+        "asvs": [
+          "V14.4.2"
+        ]
+      }
+    },
+    {
+      "control_id": "control:remove_powered_by",
+      "title": "Remove/obfuscate X-Powered-By banner",
+      "kind": "prevent",
+      "effect": {
+        "mitigates_weaknesses": [
+          "weakness:powered_by_exposed"
+        ]
+      },
+      "references": {
+        "asvs": [
+          "V14.4.2"
+        ]
+      }
+    },
+    {
+      "control_id": "control:restrict_ingress",
+      "title": "Restrict ingress (allowlists, firewall rules, security groups)",
+      "kind": "prevent",
+      "effect": {
+        "mitigates_weaknesses": [
+          "weakness:cloud_public_exposure"
+        ]
+      },
+      "references": {
+        "d3fend": [
+          "D3-NTA"
+        ],
+        "owasp": [
+          "A05:2021"
+        ]
+      }
+    },
+    {
+      "control_id": "control:waf_edge",
+      "title": "Deploy WAF/edge protection and rate limiting",
+      "kind": "prevent",
+      "effect": {
+        "reduces_impact": [
+          "impact:account_takeover",
+          "impact:data_exfiltration"
+        ],
+        "reduces_likelihood": [
+          "*"
+        ]
+      },
+      "references": {
+        "d3fend": [
+          "D3-WAF"
+        ],
+        "owasp": [
+          "A05:2021"
+        ]
+      }
+    },
+    {
+      "control_id": "control:harden_oidc_metadata",
+      "title": "Harden OIDC/OAuth metadata exposure and validate issuer/audience",
+      "kind": "prevent",
+      "effect": {
+        "mitigates_weaknesses": [
+          "weakness:oauth_discovery_exposed"
+        ]
+      },
+      "references": {
+        "asvs": [
+          "V2.1.1"
+        ],
+        "rfc": [
+          "RFC 8414",
+          "OpenID Connect Discovery 1.0"
+        ]
+      }
+    },
+    {
+      "control_id": "control:add_security_txt",
+      "title": "Publish security.txt for coordinated disclosure",
+      "kind": "respond",
+      "effect": {
+        "mitigates_weaknesses": [
+          "weakness:missing_security_txt"
+        ],
+        "reduces_impact": [
+          "impact:response_delay"
+        ]
+      },
+      "references": {
+        "rfc": [
+          "RFC 9116"
+        ]
+      }
+    }
+  ]
+}

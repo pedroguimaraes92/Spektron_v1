@@ -1,0 +1,271 @@
+{
+  "schema_version": "spektron.mappings_controls.v1",
+  "generated_at": "2026-02-25T18:00:00Z",
+  "stability": "FROZEN",
+  "mappings": [
+    {
+      "from": "weakness:http_reachable",
+      "controls": [
+        "control:disable_http",
+        "control:force_https_redirect",
+        "control:enable_hsts"
+      ],
+      "references": {
+        "owasp": [
+          "A05:2021"
+        ],
+        "cwe": [
+          "CWE-319"
+        ]
+      }
+    },
+    {
+      "from": "weakness:hsts_missing",
+      "controls": [
+        "control:enable_hsts",
+        "control:force_https_redirect"
+      ],
+      "references": {
+        "owasp": [
+          "A05:2021"
+        ],
+        "asvs": [
+          "V14.2.5"
+        ],
+        "cwe": [
+          "CWE-319"
+        ]
+      }
+    },
+    {
+      "from": "weakness:csp_missing",
+      "controls": [
+        "control:deploy_csp"
+      ],
+      "references": {
+        "owasp": [
+          "A03:2021"
+        ],
+        "asvs": [
+          "V14.4.5"
+        ],
+        "cwe": [
+          "CWE-79"
+        ]
+      }
+    },
+    {
+      "from": "weakness:x_frame_options_missing",
+      "controls": [
+        "control:x_frame_options"
+      ],
+      "references": {
+        "owasp": [
+          "A05:2021"
+        ],
+        "asvs": [
+          "V14.4.4"
+        ],
+        "cwe": [
+          "CWE-1021"
+        ]
+      }
+    },
+    {
+      "from": "weakness:x_content_type_options_missing",
+      "controls": [
+        "control:x_content_type_options"
+      ],
+      "references": {
+        "owasp": [
+          "A05:2021"
+        ],
+        "asvs": [
+          "V14.4.3"
+        ]
+      }
+    },
+    {
+      "from": "weakness:referrer_policy_missing",
+      "controls": [
+        "control:referrer_policy"
+      ],
+      "references": {
+        "owasp": [
+          "A01:2021"
+        ],
+        "asvs": [
+          "V14.4.6"
+        ]
+      }
+    },
+    {
+      "from": "weakness:permissions_policy_missing",
+      "controls": [
+        "control:permissions_policy"
+      ],
+      "references": {
+        "asvs": [
+          "V14.4.7"
+        ]
+      }
+    },
+    {
+      "from": "weakness:tls_weak_version",
+      "controls": [
+        "control:disable_legacy_tls"
+      ],
+      "references": {
+        "owasp": [
+          "A02:2021"
+        ],
+        "asvs": [
+          "V14.2.2"
+        ],
+        "cwe": [
+          "CWE-326"
+        ]
+      }
+    },
+    {
+      "from": "weakness:tls_unverified",
+      "controls": [
+        "control:fix_tls_chain",
+        "control:use_trusted_ca"
+      ],
+      "references": {
+        "owasp": [
+          "A02:2021"
+        ],
+        "asvs": [
+          "V14.2.1"
+        ]
+      }
+    },
+    {
+      "from": "weakness:tls_self_signed",
+      "controls": [
+        "control:use_trusted_ca"
+      ],
+      "references": {
+        "owasp": [
+          "A02:2021"
+        ],
+        "asvs": [
+          "V14.2.1"
+        ]
+      }
+    },
+    {
+      "from": "weakness:cert_expiring_soon",
+      "controls": [
+        "control:renew_certificate"
+      ],
+      "references": {
+        "asvs": [
+          "V14.2.1"
+        ]
+      }
+    },
+    {
+      "from": "weakness:cookies_without_secure",
+      "controls": [
+        "control:cookie_secure",
+        "control:enable_hsts"
+      ],
+      "references": {
+        "owasp": [
+          "A07:2021"
+        ],
+        "asvs": [
+          "V3.4.2"
+        ]
+      }
+    },
+    {
+      "from": "weakness:cookies_without_httponly",
+      "controls": [
+        "control:cookie_httponly",
+        "control:deploy_csp"
+      ],
+      "references": {
+        "owasp": [
+          "A07:2021"
+        ],
+        "asvs": [
+          "V3.4.2"
+        ]
+      }
+    },
+    {
+      "from": "weakness:cookies_samesite_missing",
+      "controls": [
+        "control:cookie_samesite"
+      ],
+      "references": {
+        "owasp": [
+          "A01:2021"
+        ],
+        "asvs": [
+          "V3.4.3"
+        ]
+      }
+    },
+    {
+      "from": "weakness:server_banner_exposed",
+      "controls": [
+        "control:remove_server_banner"
+      ],
+      "references": {
+        "asvs": [
+          "V14.4.2"
+        ]
+      }
+    },
+    {
+      "from": "weakness:powered_by_exposed",
+      "controls": [
+        "control:remove_powered_by"
+      ],
+      "references": {
+        "asvs": [
+          "V14.4.2"
+        ]
+      }
+    },
+    {
+      "from": "weakness:cloud_public_exposure",
+      "controls": [
+        "control:restrict_ingress",
+        "control:waf_edge"
+      ],
+      "references": {
+        "owasp": [
+          "A05:2021"
+        ]
+      }
+    },
+    {
+      "from": "weakness:oauth_discovery_exposed",
+      "controls": [
+        "control:harden_oidc_metadata"
+      ],
+      "references": {
+        "asvs": [
+          "V2.1.1"
+        ]
+      }
+    },
+    {
+      "from": "weakness:missing_security_txt",
+      "controls": [
+        "control:add_security_txt"
+      ],
+      "references": {
+        "rfc": [
+          "RFC 9116"
+        ]
+      }
+    }
+  ]
+}

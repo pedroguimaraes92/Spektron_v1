@@ -1,0 +1,102 @@
+{
+  "schema_version": "spektron.impact_model.v1",
+  "generated_at": "2026-02-25T18:00:00Z",
+  "stability": "FROZEN",
+  "impacts": [
+    {
+      "impact_id": "impact:information_disclosure",
+      "title": "Information disclosure",
+      "cia": [
+        "confidentiality"
+      ],
+      "tier": "minor",
+      "base_weight": 0.25
+    },
+    {
+      "impact_id": "impact:privacy_leak",
+      "title": "Privacy leak",
+      "cia": [
+        "confidentiality"
+      ],
+      "tier": "moderate",
+      "base_weight": 0.35
+    },
+    {
+      "impact_id": "impact:targeted_exploitation",
+      "title": "Targeted exploitation enablement",
+      "cia": [
+        "confidentiality"
+      ],
+      "tier": "moderate",
+      "base_weight": 0.4
+    },
+    {
+      "impact_id": "impact:credential_theft",
+      "title": "Credential theft",
+      "cia": [
+        "confidentiality",
+        "integrity"
+      ],
+      "tier": "major",
+      "base_weight": 0.7
+    },
+    {
+      "impact_id": "impact:session_hijack",
+      "title": "Session hijack",
+      "cia": [
+        "confidentiality",
+        "integrity"
+      ],
+      "tier": "major",
+      "base_weight": 0.65
+    },
+    {
+      "impact_id": "impact:account_takeover",
+      "title": "Account takeover (ATO)",
+      "cia": [
+        "confidentiality",
+        "integrity"
+      ],
+      "tier": "severe",
+      "base_weight": 0.9
+    },
+    {
+      "impact_id": "impact:data_exfiltration",
+      "title": "Data exfiltration",
+      "cia": [
+        "confidentiality"
+      ],
+      "tier": "severe",
+      "base_weight": 0.85
+    },
+    {
+      "impact_id": "impact:service_disruption",
+      "title": "Service disruption",
+      "cia": [
+        "availability"
+      ],
+      "tier": "major",
+      "base_weight": 0.7
+    },
+    {
+      "impact_id": "impact:response_delay",
+      "title": "Incident response delay",
+      "cia": [
+        "availability"
+      ],
+      "tier": "moderate",
+      "base_weight": 0.3
+    }
+  ],
+  "cia_weights_default": {
+    "confidentiality": 1.0,
+    "integrity": 1.0,
+    "availability": 0.9
+  },
+  "asset_criticality_multipliers": {
+    "low": 0.85,
+    "medium": 1.0,
+    "high": 1.2,
+    "critical": 1.35
+  }
+}

@@ -1,0 +1,329 @@
+{
+  "schema_version": "spektron.weakness_catalog.v1",
+  "generated_at": "2026-02-25T18:00:00Z",
+  "stability": "FROZEN",
+  "categories": [
+    "transport_security",
+    "security_headers",
+    "cookie_security",
+    "exposed_services",
+    "fingerprinting",
+    "known_vulnerability",
+    "misconfiguration",
+    "auth_surface"
+  ],
+  "weaknesses": [
+    {
+      "weakness_id": "weakness:http_reachable",
+      "title": "HTTP reachable on internet (insecure entry point)",
+      "category": "exposed_services",
+      "cia": [
+        "confidentiality",
+        "integrity"
+      ],
+      "base_likelihood": 0.55,
+      "impact_hints": [
+        "impact:credential_theft",
+        "impact:account_takeover"
+      ],
+      "remediation_hints": [
+        "control:force_https_redirect",
+        "control:disable_http"
+      ]
+    },
+    {
+      "weakness_id": "weakness:hsts_missing",
+      "title": "HSTS missing over HTTPS",
+      "category": "security_headers",
+      "cia": [
+        "confidentiality",
+        "integrity"
+      ],
+      "base_likelihood": 0.6,
+      "impact_hints": [
+        "impact:credential_theft",
+        "impact:account_takeover"
+      ],
+      "remediation_hints": [
+        "control:enable_hsts"
+      ]
+    },
+    {
+      "weakness_id": "weakness:csp_missing",
+      "title": "Content-Security-Policy (CSP) missing",
+      "category": "security_headers",
+      "cia": [
+        "confidentiality",
+        "integrity"
+      ],
+      "base_likelihood": 0.45,
+      "impact_hints": [
+        "impact:account_takeover",
+        "impact:data_exfiltration"
+      ],
+      "remediation_hints": [
+        "control:deploy_csp"
+      ]
+    },
+    {
+      "weakness_id": "weakness:x_frame_options_missing",
+      "title": "X-Frame-Options missing (clickjacking exposure)",
+      "category": "security_headers",
+      "cia": [
+        "integrity"
+      ],
+      "base_likelihood": 0.35,
+      "impact_hints": [
+        "impact:account_takeover"
+      ],
+      "remediation_hints": [
+        "control:x_frame_options"
+      ]
+    },
+    {
+      "weakness_id": "weakness:x_content_type_options_missing",
+      "title": "X-Content-Type-Options missing",
+      "category": "security_headers",
+      "cia": [
+        "integrity"
+      ],
+      "base_likelihood": 0.3,
+      "impact_hints": [
+        "impact:data_exfiltration"
+      ],
+      "remediation_hints": [
+        "control:x_content_type_options"
+      ]
+    },
+    {
+      "weakness_id": "weakness:referrer_policy_missing",
+      "title": "Referrer-Policy missing",
+      "category": "security_headers",
+      "cia": [
+        "confidentiality"
+      ],
+      "base_likelihood": 0.25,
+      "impact_hints": [
+        "impact:information_disclosure"
+      ],
+      "remediation_hints": [
+        "control:referrer_policy"
+      ]
+    },
+    {
+      "weakness_id": "weakness:permissions_policy_missing",
+      "title": "Permissions-Policy missing (browser feature hardening absent)",
+      "category": "security_headers",
+      "cia": [
+        "confidentiality",
+        "integrity"
+      ],
+      "base_likelihood": 0.2,
+      "impact_hints": [
+        "impact:privacy_leak",
+        "impact:account_takeover"
+      ],
+      "remediation_hints": [
+        "control:permissions_policy"
+      ]
+    },
+    {
+      "weakness_id": "weakness:tls_weak_version",
+      "title": "Weak TLS version observed (TLS 1.0/1.1)",
+      "category": "transport_security",
+      "cia": [
+        "confidentiality",
+        "integrity"
+      ],
+      "base_likelihood": 0.65,
+      "impact_hints": [
+        "impact:data_exfiltration",
+        "impact:credential_theft"
+      ],
+      "remediation_hints": [
+        "control:disable_legacy_tls"
+      ]
+    },
+    {
+      "weakness_id": "weakness:tls_unverified",
+      "title": "TLS certificate not verified (invalid chain / hostname mismatch)",
+      "category": "transport_security",
+      "cia": [
+        "confidentiality",
+        "integrity"
+      ],
+      "base_likelihood": 0.6,
+      "impact_hints": [
+        "impact:credential_theft",
+        "impact:account_takeover"
+      ],
+      "remediation_hints": [
+        "control:fix_tls_chain"
+      ]
+    },
+    {
+      "weakness_id": "weakness:tls_self_signed",
+      "title": "Self-signed certificate in use",
+      "category": "transport_security",
+      "cia": [
+        "confidentiality",
+        "integrity"
+      ],
+      "base_likelihood": 0.55,
+      "impact_hints": [
+        "impact:credential_theft"
+      ],
+      "remediation_hints": [
+        "control:use_trusted_ca"
+      ]
+    },
+    {
+      "weakness_id": "weakness:cert_expiring_soon",
+      "title": "Certificate expiring soon (operational risk)",
+      "category": "misconfiguration",
+      "cia": [
+        "availability"
+      ],
+      "base_likelihood": 0.35,
+      "impact_hints": [
+        "impact:service_disruption"
+      ],
+      "remediation_hints": [
+        "control:renew_certificate"
+      ]
+    },
+    {
+      "weakness_id": "weakness:cookies_without_secure",
+      "title": "Cookies set without Secure flag (over HTTPS context)",
+      "category": "cookie_security",
+      "cia": [
+        "confidentiality",
+        "integrity"
+      ],
+      "base_likelihood": 0.55,
+      "impact_hints": [
+        "impact:credential_theft",
+        "impact:account_takeover"
+      ],
+      "remediation_hints": [
+        "control:cookie_secure"
+      ]
+    },
+    {
+      "weakness_id": "weakness:cookies_without_httponly",
+      "title": "Cookies set without HttpOnly flag",
+      "category": "cookie_security",
+      "cia": [
+        "confidentiality",
+        "integrity"
+      ],
+      "base_likelihood": 0.45,
+      "impact_hints": [
+        "impact:account_takeover",
+        "impact:session_hijack"
+      ],
+      "remediation_hints": [
+        "control:cookie_httponly"
+      ]
+    },
+    {
+      "weakness_id": "weakness:cookies_samesite_missing",
+      "title": "Cookies without SameSite (CSRF exposure)",
+      "category": "cookie_security",
+      "cia": [
+        "integrity"
+      ],
+      "base_likelihood": 0.4,
+      "impact_hints": [
+        "impact:account_takeover"
+      ],
+      "remediation_hints": [
+        "control:cookie_samesite"
+      ]
+    },
+    {
+      "weakness_id": "weakness:server_banner_exposed",
+      "title": "Server banner exposed (fingerprinting)",
+      "category": "fingerprinting",
+      "cia": [
+        "confidentiality"
+      ],
+      "base_likelihood": 0.25,
+      "impact_hints": [
+        "impact:targeted_exploitation"
+      ],
+      "remediation_hints": [
+        "control:remove_server_banner"
+      ]
+    },
+    {
+      "weakness_id": "weakness:powered_by_exposed",
+      "title": "X-Powered-By banner exposed (fingerprinting)",
+      "category": "fingerprinting",
+      "cia": [
+        "confidentiality"
+      ],
+      "base_likelihood": 0.25,
+      "impact_hints": [
+        "impact:targeted_exploitation"
+      ],
+      "remediation_hints": [
+        "control:remove_powered_by"
+      ]
+    },
+    {
+      "weakness_id": "weakness:cloud_public_exposure",
+      "title": "Public cloud exposure (internet-facing in major cloud provider range)",
+      "category": "exposed_services",
+      "cia": [
+        "confidentiality",
+        "integrity",
+        "availability"
+      ],
+      "base_likelihood": 0.3,
+      "impact_hints": [
+        "impact:data_exfiltration",
+        "impact:service_disruption",
+        "impact:account_takeover"
+      ],
+      "remediation_hints": [
+        "control:restrict_ingress",
+        "control:waf_edge"
+      ]
+    },
+    {
+      "weakness_id": "weakness:oauth_discovery_exposed",
+      "title": "OAuth/OIDC discovery endpoint exposed (enumeration surface)",
+      "category": "auth_surface",
+      "cia": [
+        "confidentiality"
+      ],
+      "base_likelihood": 0.2,
+      "impact_hints": [
+        "impact:targeted_exploitation",
+        "impact:credential_theft"
+      ],
+      "remediation_hints": [
+        "control:harden_oidc_metadata"
+      ]
+    },
+    {
+      "weakness_id": "weakness:missing_security_txt",
+      "title": "security.txt missing (incident response coordination gap)",
+      "category": "misconfiguration",
+      "cia": [
+        "availability"
+      ],
+      "base_likelihood": 0.1,
+      "impact_hints": [
+        "impact:response_delay"
+      ],
+      "remediation_hints": [
+        "control:add_security_txt"
+      ]
+    }
+  ],
+  "notes": {
+    "scope": "Web passive external only. Findings requiring active interaction are intentionally excluded in v1."
+  }
+}
