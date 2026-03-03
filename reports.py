@@ -1,10 +1,3 @@
-# reports.py
-# Spektron v1 — Reports UI (Export / Folders)
-#
-# NOTE:
-# - This module is UI-only + deterministic exports (PDF/ZIP) from existing JSON outputs.
-# - It is designed to be plugged into main_menu.py similarly to Settings/About.
-#
 from __future__ import annotations
 
 import json
@@ -36,7 +29,6 @@ from PySide6.QtWidgets import (
     QGraphicsDropShadowEffect,
 )
 
-# ReportLab (PDF export)
 try:
     from reportlab.lib.pagesizes import A4
     from reportlab.lib.units import mm
@@ -50,13 +42,10 @@ try:
         PageBreak,
     )
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-except Exception:  # pragma: no cover
-    A4 = None  # type: ignore
+except Exception:
+    A4 = None
 
 
-# -----------------------------
-# Helpers (filesystem / parsing)
-# -----------------------------
 
 _SCAN_RE_EVIDENCE = re.compile(r"^evidence_(?P<scan>.+?)\.v1\.json$", re.IGNORECASE)
 _SCAN_RE_ATTACK = re.compile(
@@ -67,10 +56,7 @@ _SCAN_RE_EXPORT_ZIP = re.compile(r"^export_(?P<scan>.+?)\.zip$", re.IGNORECASE)
 
 
 def _root_dir() -> Path:
-    # Root = folder where main_menu.py lives. reports.py is expected under same root or ui/.
-    # We can't reliably import main_menu here; assume repo root is 1–2 levels up from this file.
     p = Path(__file__).resolve()
-    # if ui/reports.py => root is parent.parent
     if p.parent.name.lower() == "ui":
         return p.parent.parent
     return p.parent
@@ -92,13 +78,12 @@ def _open_path_cross_platform(path: Path) -> None:
     path = path.resolve()
     try:
         if os.name == "nt":
-            os.startfile(str(path))  # type: ignore[attr-defined]
+            os.startfile(str(path)) 
         elif sys.platform == "darwin":
             subprocess.run(["open", str(path)], check=False)
         else:
             subprocess.run(["xdg-open", str(path)], check=False)
     except Exception:
-        # Silent; UI will show errors where relevant
         pass
 
 
@@ -192,9 +177,6 @@ def _top_paths(paths: List[Dict[str, Any]], n: int = 5) -> List[Dict[str, Any]]:
     return sorted(paths, key=key_fn, reverse=True)[:n]
 
 
-# -----------------------------
-# PDF export (deterministic)
-# -----------------------------
 
 def _ensure_reports_dir() -> Path:
     d = _out_dir("reports")
@@ -214,12 +196,10 @@ def _make_pdf(scan_id: str) -> Tuple[bool, str, Optional[Path]]:
     if not isinstance(paths, list):
         return False, "attack_paths JSON not found or invalid.", None
 
-    # Derive summary if missing / partial
     total_paths = len(paths)
     max_score = _max_score_from_paths(paths)
     buckets = _bucket_counts_from_paths(paths)
 
-    # best-effort: pull target from evidence if present
     target = None
     if isinstance(evidence, dict):
         target = evidence.get("target") or evidence.get("host") or evidence.get("url")
@@ -246,7 +226,6 @@ def _make_pdf(scan_id: str) -> Tuple[bool, str, Optional[Path]]:
     story.append(Paragraph(f"Breakdown: HIGH {buckets['HIGH']} · MED {buckets['MED']} · LOW {buckets['LOW']}", body))
     story.append(Spacer(1, 10))
 
-    # Ranked table
     story.append(Paragraph("Ranked Attack Paths", h2))
     rows = [["Score", "Bucket", "Entry", "Weakness", "Impact"]]
     for p in _top_paths(paths, n=min(50, len(paths))):
@@ -269,7 +248,6 @@ def _make_pdf(scan_id: str) -> Tuple[bool, str, Optional[Path]]:
     story.append(table)
     story.append(PageBreak())
 
-    # Details (Top 10)
     story.append(Paragraph("Top 10 Details", h2))
     for p in _top_paths(paths, n=min(10, len(paths))):
         pid = p.get("id", "")
@@ -299,7 +277,6 @@ def _make_pdf(scan_id: str) -> Tuple[bool, str, Optional[Path]]:
 
         story.append(Spacer(1, 8))
 
-    # Appendix
     story.append(PageBreak())
     story.append(Paragraph("Appendix — Source files", h2))
     for k, fp in files.items():
@@ -337,9 +314,6 @@ def _make_zip(scan_id: str) -> Tuple[bool, str, Optional[Path]]:
         return False, f"Failed to generate ZIP: {e}", None
 
 
-# -----------------------------
-# UI components
-# -----------------------------
 
 class _Card(QFrame):
     def __init__(self, parent: Optional[QWidget] = None) -> None:
@@ -427,18 +401,16 @@ class ReportsWidget(QWidget):
         self._icon_main = icons / "icon_reports.png"
         self._icon_back = icons / "icon_back.png"
         self._icon_export = icons / "icon_export.png"
-        self._icon_folders = icons / "icon_exit.png"  # requested
+        self._icon_folders = icons / "icon_exit.png"
 
         self._current_scan: Optional[str] = None
         self._scan_ids: List[str] = []
 
-        # Outer layout (match Settings: icon outside card)
         outer = QVBoxLayout(self)
         outer.setContentsMargins(0, 0, 0, 0)
         outer.setSpacing(0)
         outer.setAlignment(Qt.AlignTop)
 
-        # Top icon (outside card)
         self._icon_label = QLabel()
         self._icon_label.setAlignment(Qt.AlignHCenter)
         icon_glow = QGraphicsDropShadowEffect()
@@ -455,15 +427,12 @@ class ReportsWidget(QWidget):
         self.card.setMinimumHeight(460)
         self.card.setMaximumHeight(520)
         outer.addWidget(self.card, 0, Qt.AlignHCenter)
-
-        # Keep content anchored like Settings
         outer.addStretch(1)
 
         card_lay = QVBoxLayout(self.card)
         card_lay.setContentsMargins(26, 22, 26, 22)
         card_lay.setSpacing(16)
 
-        # Header
 
         hdr = QVBoxLayout()
         hdr.setSpacing(4)
@@ -484,7 +453,6 @@ class ReportsWidget(QWidget):
         self.host_lay.setContentsMargins(0, 0, 0, 0)
         self.host_lay.setSpacing(0)
 
-        # Pages
         self.page_hub = QWidget()
         self.page_export = QWidget()
         self.page_folders = QWidget()
@@ -493,7 +461,6 @@ class ReportsWidget(QWidget):
         self.host_lay.addWidget(self.page_export)
         self.host_lay.addWidget(self.page_folders)
 
-        # Build UI
         self._build_hub()
         self._build_export()
         self._build_folders()
@@ -501,9 +468,6 @@ class ReportsWidget(QWidget):
         self._set_page("hub")
         self._refresh_scan_ids()
 
-    # ---------
-    # Styling
-    # ---------
 
     def _input_style(self) -> str:
         return """
@@ -593,16 +557,12 @@ class ReportsWidget(QWidget):
         """)
         return b
 
-    # ---------
-    # Pages
-    # ---------
 
     def _set_page(self, name: str) -> None:
         self.page_hub.setVisible(name == "hub")
         self.page_export.setVisible(name == "export")
         self.page_folders.setVisible(name == "folders")
 
-        # swap top icon per section (requested)
         if name == "hub":
             ico = self._icon_main
         elif name == "export":
@@ -768,13 +728,9 @@ class ReportsWidget(QWidget):
         b2.clicked.connect(lambda: _open_path_cross_platform(_out_dir("attack")))
         b3.clicked.connect(lambda: _open_path_cross_platform(_out_dir("reports")))
 
-    # -----------------------
-    # Data binding / actions
-    # -----------------------
 
     def _refresh_scan_ids(self) -> None:
         self._scan_ids = _scan_ids_available()
-        # keep selection if possible
         prev = self._current_scan
 
         def fill(cb: QComboBox) -> None:
@@ -784,7 +740,6 @@ class ReportsWidget(QWidget):
             cb.blockSignals(False)
         fill(self.exp_scan)
 
-        # pick current
         if prev and prev in self._scan_ids:
             self._set_current_scan(prev)
         elif self._scan_ids:
@@ -795,7 +750,6 @@ class ReportsWidget(QWidget):
     def _set_current_scan(self, scan_id: Optional[str]) -> None:
         self._current_scan = scan_id
 
-        # sync comboboxes
         def select(cb: QComboBox) -> None:
             cb.blockSignals(True)
             if scan_id and scan_id in self._scan_ids:
