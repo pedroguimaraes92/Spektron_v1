@@ -1,13 +1,3 @@
-# targets.py
-# Spektron v1 — Targets UI (Browser / Runs)
-#
-# CONGELADO:
-# - NÃO mexe em QSS global / sidebar / topbar.
-# - Browser: 2 colunas com RESPIRO, sem "card dentro de card".
-# - Browser: rodapé de ações FIXO fora do scroll (widget transparente, sem borda).
-# - SCANS: linha verde (hover/seleção) na DIREITA.
-# - Runs: mantém do jeito que está (congelado).
-
 from __future__ import annotations
 
 import re
@@ -136,7 +126,7 @@ class _ElideLabel(QLabel):
         self._full = text or ""
         self.setText(text)
 
-    def setText(self, text: str) -> None:  # type: ignore[override]
+    def setText(self, text: str) -> None:
         self._full = text or ""
         self._apply()
 
@@ -436,7 +426,7 @@ class TargetsWidget(QWidget):
         self._card.setObjectName("targets_card")
         self._card.setMinimumWidth(1180)
         self._card.setMaximumWidth(1400)
-        self._card.setMinimumHeight(740)  # ✅ um pouco mais alto p/ rodapé fixo
+        self._card.setMinimumHeight(740) 
         self._card.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
         self._card.setStyleSheet(
             """
@@ -489,8 +479,6 @@ class TargetsWidget(QWidget):
         self._build_runs()
 
         self._set_page("hub")
-
-    # -------- local style --------
 
     def _scroll_style(self) -> str:
         return """
@@ -574,8 +562,6 @@ class TargetsWidget(QWidget):
         QPushButton:focus{ outline: none; }
         """
 
-    # -------- header/nav --------
-
     def _set_top_icon(self, path: Path) -> None:
         pm = QPixmap(str(path))
         if not pm.isNull():
@@ -642,7 +628,6 @@ class TargetsWidget(QWidget):
             else:
                 self._rebuild_runs()
 
-    # -------- data --------
 
     def _refresh_data(self) -> None:
         self._scans = _discover_scans()
@@ -658,7 +643,6 @@ class TargetsWidget(QWidget):
         if self._selected_scan and all(self._selected_scan != s.scan_id for s in self._scans):
             self._selected_scan = None
 
-    # -------- pages --------
 
     def _build_hub(self) -> None:
         lay = QVBoxLayout(self.page_hub)
@@ -702,13 +686,11 @@ class TargetsWidget(QWidget):
         hint.setFont(_ui_font(11, QFont.Weight.Normal))
         hint.setStyleSheet("color: rgba(255,255,255,130);")
         lay.addWidget(hint)
-
-        # content row (two columns with REAL spacing)
+        
         content_row = QHBoxLayout()
         content_row.setContentsMargins(0, 0, 0, 0)
-        content_row.setSpacing(36)  # ✅ respiro entre Targets e Scans
+        content_row.setSpacing(36)
 
-        # LEFT: targets
         left = QWidget()
         left.setStyleSheet("background: transparent;")
         left.setMinimumWidth(420)
@@ -730,7 +712,6 @@ class TargetsWidget(QWidget):
         self.targets_scroll.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         l.addWidget(self.targets_scroll, 1)
 
-        # RIGHT: scans (list only; actions are fixed below, outside this scroll)
         right = QWidget()
         right.setStyleSheet("background: transparent;")
         right.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -754,7 +735,6 @@ class TargetsWidget(QWidget):
         content_row.addWidget(right, 1)
         lay.addLayout(content_row, 1)
 
-        # ✅ FIXED footer actions (outside scroll) — transparent, no border (not a sub-card)
         footer_div = QFrame()
         footer_div.setFixedHeight(1)
         footer_div.setStyleSheet("background-color: rgba(255,255,255,10);")
@@ -811,7 +791,6 @@ class TargetsWidget(QWidget):
 
         self._sync_actions(None)
 
-    # Runs (congelado)
     def _build_runs(self) -> None:
         lay = QVBoxLayout(self.page_runs)
         lay.setContentsMargins(0, 6, 0, 0)
@@ -887,7 +866,6 @@ class TargetsWidget(QWidget):
         self.btn_runs_open_attack.clicked.connect(self._runs_open_attack)
         self.btn_runs_open_reports.clicked.connect(self._runs_open_reports)
 
-    # -------- rebuild --------
 
     def _new_list_container(self) -> Tuple[QWidget, QVBoxLayout]:
         w = QWidget()
@@ -910,7 +888,6 @@ class TargetsWidget(QWidget):
         self.targets_scroll.show()
         self.scans_scroll.show()
 
-        # Targets
         t_wrap, t_lay = self._new_list_container()
         self.targets_group = QButtonGroup(self)
         self.targets_group.setExclusive(True)
@@ -984,7 +961,6 @@ class TargetsWidget(QWidget):
         self.runs_scroll.setWidget(r_wrap)
         self._runs_sync_actions(self._selected_scan)
 
-    # -------- selection/actions --------
 
     def _on_target_selected(self, target: str) -> None:
         self._selected_target = target
@@ -1018,7 +994,7 @@ class TargetsWidget(QWidget):
         host = self._host()
         if host is not None and hasattr(host, "go_full_scan"):
             try:
-                host.go_full_scan(sid)  # type: ignore[attr-defined]
+                host.go_full_scan(sid)
             except Exception:
                 pass
 
@@ -1029,7 +1005,7 @@ class TargetsWidget(QWidget):
         host = self._host()
         if host is not None and hasattr(host, "go_attack_paths_last"):
             try:
-                host.go_attack_paths_last(sid)  # type: ignore[attr-defined]
+                host.go_attack_paths_last(sid)
             except Exception:
                 pass
 
@@ -1040,11 +1016,10 @@ class TargetsWidget(QWidget):
         host = self._host()
         if host is not None and hasattr(host, "go_reports_export"):
             try:
-                host.go_reports_export(sid)  # type: ignore[attr-defined]
+                host.go_reports_export(sid)
             except Exception:
                 pass
 
-    # Runs actions
     def _runs_on_selected(self, scan_id: str) -> None:
         self._selected_scan = scan_id
         self._runs_sync_actions(scan_id)
@@ -1062,7 +1037,7 @@ class TargetsWidget(QWidget):
         host = self._host()
         if host is not None and hasattr(host, "go_full_scan"):
             try:
-                host.go_full_scan(sid)  # type: ignore[attr-defined]
+                host.go_full_scan(sid)
             except Exception:
                 pass
 
@@ -1073,7 +1048,7 @@ class TargetsWidget(QWidget):
         host = self._host()
         if host is not None and hasattr(host, "go_attack_paths_last"):
             try:
-                host.go_attack_paths_last(sid)  # type: ignore[attr-defined]
+                host.go_attack_paths_last(sid)
             except Exception:
                 pass
 
@@ -1084,6 +1059,7 @@ class TargetsWidget(QWidget):
         host = self._host()
         if host is not None and hasattr(host, "go_reports_export"):
             try:
-                host.go_reports_export(sid)  # type: ignore[attr-defined]
+                host.go_reports_export(sid)
             except Exception:
                 pass
+
