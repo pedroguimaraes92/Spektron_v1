@@ -10,13 +10,11 @@ def _sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 def _parse_notafter(s: Optional[str]) -> Optional[str]:
-    # keep as-is, but also compute days remaining
     return s
 
 def _days_until(not_after: Optional[str]) -> Optional[int]:
     if not not_after:
         return None
-    # format: 'Jun  1 12:00:00 2026 GMT'
     fmts = ["%b %d %H:%M:%S %Y %Z", "%b  %d %H:%M:%S %Y %Z"]
     for fmt in fmts:
         try:
@@ -32,12 +30,11 @@ def _handshake(host: str, port: int, *, insecure: bool, min_v: Optional[int], ma
     if insecure:
         ctx.check_hostname = False
         ctx.verify_mode = ssl.CERT_NONE
-    # set versions if supported (py3.7+)
     try:
         if min_v is not None:
-            ctx.minimum_version = ssl.TLSVersion(min_v)  # type: ignore
+            ctx.minimum_version = ssl.TLSVersion(min_v)
         if max_v is not None:
-            ctx.maximum_version = ssl.TLSVersion(max_v)  # type: ignore
+            ctx.maximum_version = ssl.TLSVersion(max_v)
     except Exception:
         pass
 
@@ -74,7 +71,6 @@ def probe_tls(host: str, port: int, *, insecure: bool) -> JSON:
         "error": None,
     }
 
-    # baseline handshake (default context)
     try:
         h = _handshake(host, port, insecure=insecure, min_v=None, max_v=None)
         res["present"] = True
@@ -96,7 +92,6 @@ def probe_tls(host: str, port: int, *, insecure: bool) -> JSON:
         res["error"] = str(e)
         return res
 
-    # enumerate versions if possible
     vers = []
     mapping = [
         ("TLSv1", getattr(ssl.TLSVersion, "TLSv1", None)),
@@ -108,7 +103,7 @@ def probe_tls(host: str, port: int, *, insecure: bool) -> JSON:
         if v is None:
             continue
         try:
-            _handshake(host, port, insecure=insecure, min_v=v.value, max_v=v.value)  # type: ignore
+            _handshake(host, port, insecure=insecure, min_v=v.value, max_v=v.value)
             vers.append({"version": name, "supported": True})
         except Exception:
             vers.append({"version": name, "supported": False})
