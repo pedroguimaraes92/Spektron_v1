@@ -1,19 +1,3 @@
-# pip install pyside6
-#
-# Assets expected (relative to this file):
-#   assets/launcher_bg.png                  (1280x720)
-#   assets/launcher_bg_2560x1440.png        (2560x1440)  <-- usado quando disponível
-#   assets/spektron_cat.png
-#   assets/spektron_cat_red_eyes.png        <-- NOVO (olhos vermelhos)
-#   assets/spektron_cat_outline.json        (recomendado)
-#
-#   assets/icons/icon_main_menu.png
-#   assets/icons/icon_quick_scan.png
-#   assets/icons/icon_settings.png
-#
-# Run:
-#   python launcher.py
-
 import json
 import math
 import sys
@@ -58,7 +42,6 @@ ROOT = Path(__file__).resolve().parent
 ASSETS = ROOT / "assets"
 ICONS = ASSETS / "icons"
 
-# Backgrounds (dois tamanhos)
 BG_PATH = ASSETS / "launcher_bg.png"
 BG_PATH_HI = ASSETS / "launcher_bg_2560x1440.png"
 
@@ -195,7 +178,6 @@ class LogoTraceWidget(QWidget):
         if self._pix_red.isNull():
             self._pix_red = self._pix_green
 
-        # Glow principal do logo (mantido)
         self._glow = QGraphicsDropShadowEffect(self)
         self._glow.setOffset(0, 0)
         self._glow.setBlurRadius(0)
@@ -249,14 +231,12 @@ class LogoTraceWidget(QWidget):
 
         self._t += 0.10
 
-        # Flicker suave do glow principal
         a = 170 + int(30 * math.sin(self._t) + 18 * math.sin(self._t * 2.6))
         a = max(110, min(230, a))
         c = QColor(LOGO_NEON)
         c.setAlpha(a)
         self._glow.setColor(c)
 
-        # dispara olhos vermelhos UMA vez
         if not self._eyes_latched:
             s = 0.5 + 0.5 * math.sin(self._t * 0.55)
             blink = max(0.0, min(1.0, (s - 0.72) / 0.28))
@@ -543,7 +523,6 @@ class Launcher(Background):
     def __init__(self):
         super().__init__(BG_PATH, BG_PATH_HI)
 
-        # Fullscreen, frameless launcher (no minimize/maximize/close buttons)
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.Window)
 
         self.setWindowTitle("Spektron")
@@ -609,7 +588,6 @@ class Launcher(Background):
         self.tile_main.clicked.connect(lambda: print("MAIN MENU"))
         self.tile_quick.clicked.connect(self._open_quickscan)
 
-        # ALTERAÇÃO ÚNICA: botão EXIT fecha o launcher
         self.tile_settings.clicked.connect(self.close)
 
         QTimer.singleShot(260, self.logo.start_trace)
@@ -621,7 +599,6 @@ class Launcher(Background):
             if not script.exists():
                 print("quickscan.py not found in project root")
                 return
-            # Use a detached process so the launcher keeps running independently.
             QProcess.startDetached(sys.executable, [str(script)], str(ROOT))
         except Exception as e:
             print(f"Failed to launch quickscan: {e}")
@@ -651,7 +628,6 @@ def main():
     app = QApplication(sys.argv)
     app.setFont(QFont("Segoe UI", 10))
     w = Launcher()
-    # Launcher is frameless; keep it fullscreen.
     w.showFullScreen()
     sys.exit(app.exec())
 
