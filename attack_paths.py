@@ -1,17 +1,3 @@
-"""Spektron v1 — Attack Paths UI
-
-CONGELADO (UI module only):
- - Does NOT touch global QSS / background / sidebar / topbar.
- - Reads ONLY offline JSON outputs from output/attack.
- - Hub mode mirrors SettingsView hub pattern (single card + tiles).
- - Viewer mode is a close match to the provided mock.
-
-Files read (offline):
-  output/attack/attack_paths_<scan_id>.v1.json
-  output/attack/attack_summary_<scan_id>.v1.json
-  output/attack/attack_graph_<scan_id>.v1.json
-"""
-
 from __future__ import annotations
 
 import json
@@ -93,7 +79,6 @@ def _score_to_float(v: Any) -> Optional[float]:
         except Exception:
             return None
     if isinstance(v, dict):
-        # Spektron v1 shape: {"score_0_100": 56, "bucket": "High", ...}
         for k in ("score_0_100", "score", "value", "risk_score", "attack_path_score"):
             if k in v:
                 try:
@@ -133,7 +118,6 @@ def _collect_refs(*vals: Any) -> List[str]:
             out.extend([_str_or_empty(x) for x in v])
             continue
         if isinstance(v, dict):
-            # common key is "refs"
             if "refs" in v:
                 out.extend([_str_or_empty(x) for x in _to_list(v.get("refs"))])
             continue
@@ -141,7 +125,6 @@ def _collect_refs(*vals: Any) -> List[str]:
         if s:
             out.append(s)
 
-    # de-dup while preserving order
     seen = set()
     dedup: List[str] = []
     for s in out:
@@ -171,7 +154,6 @@ def _build_evidence_map(doc: Any) -> Dict[str, str]:
     def _ev_text(it: Dict[str, Any]) -> str:
         et = _first_str(it.get("type"), it.get("kind"), default="").strip()
         v = it.get("value") if isinstance(it.get("value"), dict) else {}
-        # Deterministic, professional summaries (no invented claims).
         if et == "http.header.missing":
             name = _first_str(v.get("name"), default="").strip()
             url = _first_str(v.get("url"), default="").strip()
@@ -237,7 +219,6 @@ def _build_evidence_map(doc: Any) -> Dict[str, str]:
             present = v.get("present")
             if present is True:
                 return "TLS supported"
-        # Fallback: prefer explicit text fields, otherwise concise type + value.
         text = _first_str(
             it.get("text"),
             it.get("summary"),
@@ -249,7 +230,6 @@ def _build_evidence_map(doc: Any) -> Dict[str, str]:
             return text
         if et:
             if isinstance(v, dict) and v:
-                # pick a stable single value if present
                 for k in ("name", "url", "value", "host", "ip", "status", "port"):
                     if k in v:
                         return f"{et}: {v.get(k)}"
@@ -260,7 +240,6 @@ def _build_evidence_map(doc: Any) -> Dict[str, str]:
     if isinstance(doc, list):
         items = doc
     elif isinstance(doc, dict):
-        # sometimes already keyed by id
         if all(isinstance(k, str) and isinstance(v, dict) for k, v in doc.items()) and any(
             isinstance(v, dict) and ("type" in v or "text" in v or "title" in v) for v in doc.values()
         ):
@@ -304,7 +283,6 @@ def _resolve_evidence(ref_ids: List[str], ev_map: Dict[str, str]) -> List[str]:
         t = ev_map.get(rid)
         if t:
             out.append(t)
-    # de-dup while preserving order
     seen = set()
     dedup: List[str] = []
     for s in out:
@@ -397,7 +375,6 @@ def _items_to_strings(items: Any) -> List[str]:
                 out.append(s)
         except Exception:
             pass
-    # de-dup while preserving order
     seen = set()
     dedup: List[str] = []
     for s in out:
@@ -429,7 +406,6 @@ def _elide_multiline(text: str, font: QFont, width: int, max_lines: int = 2) -> 
         w = words[wi]
         trial = (cur + " " + w).strip()
         if not cur:
-            # first token always starts the line
             cur = w
             wi += 1
             continue
@@ -437,7 +413,6 @@ def _elide_multiline(text: str, font: QFont, width: int, max_lines: int = 2) -> 
             cur = trial
             wi += 1
             continue
-        # line full
         lines.append(cur)
         cur = ""
         if len(lines) == max_lines - 1:
@@ -446,13 +421,11 @@ def _elide_multiline(text: str, font: QFont, width: int, max_lines: int = 2) -> 
     if cur and len(lines) < max_lines:
         lines.append(cur)
 
-    # remaining words -> append to last line and elide
     if wi < len(words) and lines:
         tail = " ".join(words[wi:])
         last = (lines[-1] + " " + tail).strip()
         lines[-1] = fm.elidedText(last, Qt.ElideRight, width)
 
-    # safety: ensure last line fits
     if lines:
         if fm.horizontalAdvance(lines[-1]) > width:
             lines[-1] = fm.elidedText(lines[-1], Qt.ElideRight, width)
@@ -494,8 +467,6 @@ def _risk_from_value(risk: Any, score: Optional[float]) -> str:
     if r in {"HIGH", "MED", "MEDIUM", "LOW"}:
         return "MEDIUM" if r == "MED" else r
 
-    # Fallback only (when JSON has no explicit risk):
-    # Keep it deterministic and conservative.
     if score is None:
         return "LOW"
     try:
@@ -522,7 +493,6 @@ def _existing_icon(fname: str, fallback: str) -> Path:
     p = ICONS / fname
     if p.exists():
         return p
-    # Fallback required by spec — do not invent icons.
     return ICONS / fallback
 
 
@@ -581,7 +551,6 @@ Each normalized entry contains:
 
         pid = _first_str(it.get("id"), it.get("path_id"), it.get("uid"), default=str(idx))
 
-        # score can be numeric OR object (Spektron v1 uses {"score_0_100": ...})
         score_obj = it.get("score")
         if score_obj is None:
             score_obj = it.get("attack_path_score")
@@ -591,7 +560,6 @@ Each normalized entry contains:
         score = _score_to_float(score_obj)
         bucket = _score_bucket(score_obj)
 
-        # node objects (keep raw for refs + better text formatting)
         entry_obj = it.get("entry") or it.get("entry_point") or it.get("start")
         weakness_obj = it.get("weakness") or it.get("finding") or it.get("vulnerability")
         technique_obj = (
@@ -606,7 +574,6 @@ Each normalized entry contains:
         entry = _node_text(entry_obj)
         weakness = _node_text(weakness_obj)
 
-        # technique: prefer MITRE id + title when available; hide "Unspecified..." copy
         technique = _node_text(technique_obj)
         if isinstance(technique_obj, dict):
             tid = _first_str(technique_obj.get("technique_id"), technique_obj.get("id"), default="").strip()
@@ -616,13 +583,11 @@ Each normalized entry contains:
                 technique = f"{tid} — {title}"
             elif title:
                 technique = title
-            # professional fallback for unknown technique
             if tid in {"custom:unknown", "unknown"} or (title and title.lower().startswith("unspecified")):
                 technique = "Technique inference (passive)"
 
         impact = _node_text(impact_obj)
 
-        # evidence may be inline in some engines; Spektron v1 stores refs (ev_...) instead
         evidence = _items_to_strings(
             it.get("evidence")
             or it.get("evidence_supporting_this_path")
@@ -639,10 +604,8 @@ Each normalized entry contains:
             or it.get("remediations")
         )
 
-        # collect evidence refs (path.refs + node.refs)
         refs = _collect_refs(it.get("refs"), entry_obj, weakness_obj, technique_obj, impact_obj)
 
-        # Risk can be explicit, derived from bucket, or fallback to score thresholds
         risk_raw = it.get("risk")
         if risk_raw is None:
             risk_raw = it.get("severity")
@@ -682,7 +645,6 @@ Each normalized entry contains:
 
 
 def _summary_from_docs(paths: List[Dict[str, Any]], summary_doc: Any) -> Dict[str, Any]:
-    # Prefer summary json if present
     if isinstance(summary_doc, dict):
         total = summary_doc.get("total_paths") or summary_doc.get("total")
         max_score = summary_doc.get("max_score") or summary_doc.get("max")
@@ -701,7 +663,6 @@ def _summary_from_docs(paths: List[Dict[str, Any]], summary_doc: Any) -> Dict[st
         except Exception:
             pass
 
-    # Fallback: compute from normalized paths
     total = len(paths)
     max_score = 0
     hi = 0
@@ -814,7 +775,6 @@ class _GlowLine(QWidget):
         p = QPainter(self)
         p.setRenderHint(QPainter.Antialiasing)
 
-        # main line
         g = QLinearGradient(0, 0, w, 0)
         g.setColorAt(0.0, QColor(self._left.red(), self._left.green(), self._left.blue(), 220))
         g.setColorAt(1.0, QColor(self._right.red(), self._right.green(), self._right.blue(), 220))
@@ -825,7 +785,6 @@ class _GlowLine(QWidget):
         p.setPen(pen)
         p.drawLine(0, h // 2, w, h // 2)
 
-        # glow
         g2 = QLinearGradient(0, 0, w, 0)
         g2.setColorAt(0.0, QColor(self._left.red(), self._left.green(), self._left.blue(), 110))
         g2.setColorAt(1.0, QColor(self._right.red(), self._right.green(), self._right.blue(), 110))
@@ -874,7 +833,6 @@ class _DiagramRail(QWidget):
         if len(pts) == 4:
             return pts
 
-        # fallback (evenly spaced)
         w = max(1, self.width())
         y = 43
         xs = [int(w * 0.18), int(w * 0.42), int(w * 0.66), int(w * 0.90)]
@@ -888,7 +846,6 @@ class _DiagramRail(QWidget):
         if len(pts) != 4:
             return
 
-        # Gap around plates so the rail NEVER passes under the icon.
         plate_half = 31
         gap = plate_half + 10
 
@@ -899,19 +856,16 @@ class _DiagramRail(QWidget):
         if end <= start:
             return
 
-        # 1) Base track (dark, subtle)
         track_pen = QPen(QColor(255, 255, 255, 22))
         track_pen.setWidth(6)
         track_pen.setCapStyle(Qt.RoundCap)
         p.setPen(track_pen)
         p.drawLine(start, y, end, y)
 
-        # Helper to draw one segment with glow + core
         def draw_segment(xa: int, xb: int, ca: QColor, cb: QColor):
             if xb <= xa:
                 return
 
-            # glow
             g_glow = QLinearGradient(xa, 0, xb, 0)
             g_glow.setColorAt(0.0, QColor(ca.red(), ca.green(), ca.blue(), 70))
             g_glow.setColorAt(1.0, QColor(cb.red(), cb.green(), cb.blue(), 70))
@@ -922,7 +876,6 @@ class _DiagramRail(QWidget):
             p.setPen(pen_glow)
             p.drawLine(xa, y, xb, y)
 
-            # core
             g = QLinearGradient(xa, 0, xb, 0)
             g.setColorAt(0.0, QColor(ca.red(), ca.green(), ca.blue(), 220))
             g.setColorAt(1.0, QColor(cb.red(), cb.green(), cb.blue(), 220))
@@ -933,7 +886,6 @@ class _DiagramRail(QWidget):
             p.setPen(pen)
             p.drawLine(xa, y, xb, y)
 
-        # segment endpoints (gap around each node)
         c0x, _ = pts[0]
         c1x, _ = pts[1]
         c2x, _ = pts[2]
@@ -957,11 +909,6 @@ class _DiagramRail(QWidget):
 
 
 class _RailPixmap(QLabel):
-    """PNG rail layer (transparent background), aligned to the mock.
-
-    - Drawn as a QLabel pixmap (no paintEvent math).
-    - Pixmap is kept TOP-aligned so the rail sits at the same Y as the node plates.
-    """
 
     def __init__(self, img_path: Path, parent=None):
         super().__init__(parent)
@@ -1005,8 +952,6 @@ class _NodeBlock(QFrame):
         self.setObjectName("node")
         self.setStyleSheet("QFrame#node { background: transparent; }")
         self.setFixedWidth(264)
-
-        # Backplate to mask the rail behind outline icons
         self._plate = QFrame()
         self._plate.setFixedSize(76, 76)
         self._plate.setStyleSheet(
@@ -1044,10 +989,9 @@ class _NodeBlock(QFrame):
         self._detail.setStyleSheet("color: rgba(255,255,255,150);")
         self._detail.setAlignment(Qt.AlignHCenter)
         self._detail.setWordWrap(True)
-        self._detail.setFixedHeight(72)  # more breathing room (3 lines + padding)
+        self._detail.setFixedHeight(72)
 
         v = QVBoxLayout()
-        # Top margin aligns the plate center over the rail (y=44 in _DiagramRail)
         v.setContentsMargins(0, 6, 0, 0)
         v.setSpacing(6)
         v.addWidget(self._plate, 0, Qt.AlignHCenter)
@@ -1056,8 +1000,6 @@ class _NodeBlock(QFrame):
         self.setLayout(v)
 
     def plate_center_in(self, widget: QWidget) -> Tuple[int, int]:
-        """Center of the icon plate in coordinates of *widget*."""
-        # plate is the visual anchor for the rail
         c = self._plate.rect().center()
         pt = self._plate.mapTo(widget, c)
         return int(pt.x()), int(pt.y())
@@ -1074,14 +1016,7 @@ class _NodeBlock(QFrame):
 
 
 class _ScoreBlock(QFrame):
-    """Attack Path Score badge (single card, no nested pill).
-
-    User requirement:
-    - Only ONE card.
-    - Risk (HIGH/MED/LOW) is text inside the card, colored.
-    - No notch/arrow.
-    """
-
+ 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setObjectName("score_block")
@@ -1158,7 +1093,6 @@ class _ScoreBlock(QFrame):
         p.setRenderHint(QPainter.Antialiasing)
         r = self.rect().adjusted(2, 2, -2, -2)
 
-        # Base fill gradient (subtle)
         g = QLinearGradient(0, r.top(), 0, r.bottom())
         g.setColorAt(0.0, QColor(self._bg.red(), self._bg.green(), self._bg.blue(), 44))
         g.setColorAt(0.6, QColor(0, 0, 0, 14))
@@ -1167,14 +1101,12 @@ class _ScoreBlock(QFrame):
         p.setBrush(g)
         p.drawRoundedRect(r, 18, 18)
 
-        # Outer stroke
         pen = QPen(QColor(self._border.red(), self._border.green(), self._border.blue(), 200))
         pen.setWidth(2)
         p.setPen(pen)
         p.setBrush(Qt.NoBrush)
         p.drawRoundedRect(r, 18, 18)
 
-        # Inner stroke
         pen2 = QPen(QColor(255, 255, 255, 18))
         pen2.setWidth(1)
         p.setPen(pen2)
@@ -1203,7 +1135,6 @@ class _PathItemButton(QPushButton):
         risk = (path.get("risk") or "LOW").upper()
         risk_label = "MED" if risk == "MEDIUM" else risk
 
-        # Color accents for list items (score + risk)
         if risk == "HIGH":
             ar, ag, ab = 255, 155, 80
             accent = "rgba(255,155,80,240)"
@@ -1321,10 +1252,8 @@ class AttackPathsWidget(QWidget):
         self._path_by_id: Dict[str, Dict[str, Any]] = {}
         self._last_opened_by_scan: Dict[str, str] = {}
 
-        # Icon cache
         self._pix_cache: Dict[str, QPixmap] = {}
 
-        # Build UI shell (same alignment style as SettingsView)
         root = QVBoxLayout()
         root.setContentsMargins(0, 0, 0, 0)
         root.setSpacing(0)
@@ -1344,9 +1273,6 @@ class AttackPathsWidget(QWidget):
         self._card.setObjectName("attack_card")
         self._card.setMinimumWidth(1280)
         self._card.setMaximumWidth(1480)
-        # IMPORTANT: do NOT force a tall minimum height.
-        # If we do, the main window's body area becomes taller than the screen
-        # and the sidebar bottom (About) gets clipped.
         self._card.setMinimumHeight(0)
         self._card.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
         self._card.setStyleSheet(
@@ -1380,7 +1306,6 @@ class AttackPathsWidget(QWidget):
         subtitle.setStyleSheet("color: rgba(255,255,255,135);")
         subtitle.setAlignment(Qt.AlignLeft)
 
-        # Header icon (viewer only): centered on the same visual line as the title.
         self._header_icon = QLabel()
         self._header_icon.setFixedSize(120, 120)
         self._header_icon.setAlignment(Qt.AlignCenter)
@@ -1430,8 +1355,6 @@ class AttackPathsWidget(QWidget):
 
         self._content_host = QWidget()
         self._content_host.setStyleSheet("background: transparent;")
-        # IMPORTANT: never fix the content height. Let it shrink to fit the
-        # available viewport so the main menu sidebar doesn't get clipped.
         self._content_host.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         host_layout = QVBoxLayout()
         host_layout.setContentsMargins(22, 22, 22, 22)
@@ -1451,15 +1374,11 @@ class AttackPathsWidget(QWidget):
         root.addStretch(1)
         self.setLayout(root)
 
-        # Build pages
         self._pages: Dict[str, QWidget] = {}
         self._build_hub_page()
         self._build_viewer_page()
         self._go_hub()
 
-    # ==========================
-    # Public API (Deep Links)
-    # ==========================
     def set_scan_id(self, scan_id: Optional[str]) -> None:
         self._current_scan_id = (scan_id or "").strip() or None
 
@@ -1477,7 +1396,6 @@ class AttackPathsWidget(QWidget):
         self._current_scan_id = (scan_id or "").strip() or None
         self._ensure_loaded()
 
-        # Top Risk = TOP 3 only (highest scores).
         top_ids: List[str] = []
         t3 = self._summary_doc.get("top_3") if isinstance(self._summary_doc, dict) else None
         if isinstance(t3, list):
@@ -1510,7 +1428,6 @@ class AttackPathsWidget(QWidget):
     def open_browser(self, scan_id: str) -> None:
         sid = (scan_id or "").strip()
         if not sid:
-            # Sidebar entry point: open HUB
             self._go_hub()
             return
         self._current_scan_id = sid
@@ -1524,9 +1441,6 @@ class AttackPathsWidget(QWidget):
         pid = (path_id or "").strip()
         self._open_viewer(pid if pid else None)
 
-    # ==========================
-    # Icons
-    # ==========================
     def _set_top_icon(self, fname: str) -> None:
         pm = self._pix(fname)
         if not pm.isNull():
@@ -1541,11 +1455,8 @@ class AttackPathsWidget(QWidget):
         self._pix_cache[fname] = pm
         return pm
 
-    # ==========================
-    # Navigation
-    # ==========================
+
     def _go_hub(self) -> None:
-        # HUB (tiles) is frozen: keep the top icon outside the card.
         try:
             self._icon_label.setVisible(True)
         except Exception:
@@ -1558,7 +1469,6 @@ class AttackPathsWidget(QWidget):
         self._stack.setCurrentWidget(self._pages["HUB"])
 
     def _go_viewer(self) -> None:
-        # Viewer (Last / Top) — icon moves inside the card for a cleaner, product feel.
         try:
             self._icon_label.setVisible(False)
         except Exception:
@@ -1570,9 +1480,6 @@ class AttackPathsWidget(QWidget):
             pass
         self._stack.setCurrentWidget(self._pages["VIEWER"])
 
-    # ==========================
-    # Data loading
-    # ==========================
     def _ensure_loaded(self) -> None:
         sid = self._current_scan_id
         if not sid:
@@ -1594,13 +1501,11 @@ class AttackPathsWidget(QWidget):
 
         self._all_paths = _extract_paths(paths_doc)
 
-        # Hydrate evidence column using refs -> evidence output (when available).
         if self._evidence_map:
             for p in self._all_paths:
                 if not p.get("evidence"):
                     p["evidence"] = _resolve_evidence(p.get("refs", []), self._evidence_map)
 
-        # Default visible set = ALL
         self._paths = self._all_paths
         self._summary = _summary_from_docs(self._all_paths, summary_doc)
         self._path_by_id = {p["id"]: p for p in self._paths}
@@ -1612,9 +1517,6 @@ class AttackPathsWidget(QWidget):
             self._set_empty_state("")
 
 
-    # ==========================
-    # Hub Page
-    # ==========================
     def _build_hub_page(self) -> None:
         page = QWidget()
         page.setStyleSheet("background: transparent;")
@@ -1668,15 +1570,11 @@ class AttackPathsWidget(QWidget):
     def _hub_open_browse(self) -> None:
         sid = self._current_scan_id or ""
         if not sid:
-            # No active scan — still open viewer with empty state.
             self._ensure_loaded()
             self._open_viewer(None)
             return
         self.open_browser(sid)
 
-    # ==========================
-    # Viewer Page
-    # ==========================
     def _build_viewer_page(self) -> None:
         page = QWidget()
         page.setStyleSheet("background: transparent;")
@@ -1684,7 +1582,6 @@ class AttackPathsWidget(QWidget):
         outer = QVBoxLayout()
         outer.setContentsMargins(0, 0, 0, 0)
         outer.setSpacing(12)
-        # Header row inside viewer: Back + title + stats
         header = QHBoxLayout()
         header.setContentsMargins(0, 0, 0, 0)
         header.setSpacing(10)
@@ -1728,12 +1625,10 @@ class AttackPathsWidget(QWidget):
         header.addWidget(self._stats)
         outer.addLayout(header)
 
-        # Main split
         main = QHBoxLayout()
         main.setContentsMargins(0, 0, 0, 0)
         main.setSpacing(14)
 
-        # Left list panel
         left_panel = QFrame()
         left_panel.setObjectName("left_panel")
         left_panel.setFixedWidth(390)
@@ -1798,7 +1693,6 @@ class AttackPathsWidget(QWidget):
         left_panel.setLayout(lp)
         main.addWidget(left_panel)
 
-        # Center + bottom area
         center_panel = QFrame()
         center_panel.setStyleSheet("background: transparent;")
         cp = QVBoxLayout()
@@ -1806,12 +1700,10 @@ class AttackPathsWidget(QWidget):
         cp.setSpacing(12)
 
 
-        # Score / risk block (professional badge)
         self._score_block = _ScoreBlock()
         cp.addWidget(self._score_block, 0, Qt.AlignHCenter)
         cp.addSpacing(6)
 
-        # Diagram (continuous rail behind nodes, closer to mock)
         diagram_wrap = QWidget()
         diagram_wrap.setStyleSheet("background: transparent;")
         stack = QStackedLayout()
@@ -1857,7 +1749,6 @@ class AttackPathsWidget(QWidget):
         diagram_wrap.setLayout(stack)
         cp.addWidget(diagram_wrap)
 
-        # Divider
         div = QFrame()
         div.setFixedHeight(1)
         div.setStyleSheet("background-color: rgba(255,255,255,10);")
@@ -1865,7 +1756,6 @@ class AttackPathsWidget(QWidget):
         cp.addWidget(div)
         cp.addSpacing(6)
 
-        # Bottom two columns
         bottom = QHBoxLayout()
         bottom.setContentsMargins(0, 0, 0, 0)
         bottom.setSpacing(18)
@@ -1877,7 +1767,6 @@ class AttackPathsWidget(QWidget):
         bottom.addWidget(self._cut_col, 1)
         cp.addLayout(bottom, 1)
 
-        # Empty state overlay (shown when no paths)
         self._empty = QLabel("")
         self._empty.setWordWrap(True)
         self._empty.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
@@ -1922,34 +1811,29 @@ class AttackPathsWidget(QWidget):
         wrap = QWidget()
         wrap.setLayout(inner)
         wrap.setStyleSheet("background: transparent;")
-        wrap.setMinimumHeight(52)  # keep viewer height stable (>= 2 rows)
+        wrap.setMinimumHeight(52)
         v.addWidget(wrap, 1)
 
         box.setLayout(v)
-        box._items_layout = inner  # type: ignore[attr-defined]
+        box._items_layout = inner
         return box
 
-    # ==========================
-    # Viewer helpers
-    # ==========================
     def _set_empty_state(self, msg: str) -> None:
         self._empty.setText(msg or "")
         self._empty.setVisible(bool(msg))
 
     def _rebuild_path_list(self) -> None:
-        # Update stats
         s = self._summary
         self._stats.setText(
             f"Total Paths: {s.get('total','—')}   |   Max Score: {s.get('max_score','—')}   |   High: {s.get('high','—')}   Medium: {s.get('medium','—')}   Low: {s.get('low','—')}"
         )
 
-        # Clear old list
         while self._paths_list_layout.count() > 0:
             item = self._paths_list_layout.takeAt(0)
             w = item.widget()
             if w is not None:
                 try:
-                    self._path_group.removeButton(w)  # type: ignore[arg-type]
+                    self._path_group.removeButton(w)
                 except Exception:
                     pass
                 w.setParent(None)
@@ -1995,7 +1879,6 @@ class AttackPathsWidget(QWidget):
         if not p:
             return
 
-        # Remember last selection per scan
         if self._current_scan_id:
             self._last_opened_by_scan[self._current_scan_id] = path_id
 
@@ -2027,7 +1910,6 @@ class AttackPathsWidget(QWidget):
         if lay is None:
             return
 
-        # Clear
         while lay.count() > 0:
             it = lay.takeAt(0)
             w = it.widget()
