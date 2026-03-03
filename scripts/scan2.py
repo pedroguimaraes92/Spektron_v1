@@ -1,5 +1,4 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+
 """
 Spektron Scan (CLI) - enterprise-ready single-file version
 
@@ -34,28 +33,18 @@ from typing import Any, Dict, List, Optional, Tuple
 import requests
 from colorama import init
 
-# =========================
-# Constants / Paths
-# =========================
-
 ROOT = Path(__file__).resolve().parents[1]
 OUT_DIR = ROOT / "output" / "scan"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
-# =========================
-# Bundle modules (core/probes)
-# =========================
-# When scripts/core and scripts/probes exist, prefer using them for richer passive recon probes.
 SCRIPTS_DIR = Path(__file__).resolve().parent
 if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
 
 UA = "spektron/scan2 (enterprise-cli)"
 
-# --- ANSI colors (single source of truth) ---
 RESET = "\033[0m"
 
-# Basic ANSI helpers (keeps professional CLI but still readable on plain terminals)
 C_DIM  = "\033[2m"
 C_BOLD = "\033[1m"
 C_RED  = "\033[31m"
@@ -63,12 +52,10 @@ C_YEL  = "\033[33m"
 C_GRN  = "\033[32m"
 C_BLU  = "\033[34m"
 C_MAG  = "\033[35m"
-# Use bright cyan for Windows legibility (user request)
 C_CYA  = "\033[96m"
 C_WHT  = "\033[37m"
 GREEN_NEON = "\033[92m"
 
-# Back-compat aliases (avoid NameError if older code uses C_C_*)
 C_C_DIM  = C_DIM
 C_C_BOLD = C_BOLD
 C_C_RED  = C_RED
@@ -79,8 +66,6 @@ try:
 except Exception:
     pass
 
-# ===== Banner =====
-# (user-provided) — keep neon green + same path
 _BANNER_PRINTED = False
 
 def print_banner() -> None:
@@ -104,7 +89,6 @@ def print_banner_once() -> None:
     _BANNER_PRINTED = True
 
 
-# ===== CLI helpers =====
 
 def c(s: str, color: str) -> str:
     return f"{color}{s}{RESET}"
@@ -115,9 +99,6 @@ def term_width(default: int = 92) -> int:
     except Exception:
         return default
 
-# =========================
-# CLI command parsing
-# =========================
 
 def parse_scan_command(s: str) -> Tuple[str, bool]:
     """
@@ -148,7 +129,6 @@ def parse_scan_command(s: str) -> Tuple[str, bool]:
             raise ValueError("target vazio")
         return (" ".join(rest).strip(), insecure)
 
-    # allow direct url/host
     return (raw, insecure)
 
 
@@ -157,7 +137,6 @@ def normalize_target(target: str) -> Dict[str, Any]:
     if not raw:
         raise ValueError("target vazio")
 
-    # If user passes only host, assume https
     if "://" not in raw:
         raw = "https://" + raw
 
@@ -167,7 +146,6 @@ def normalize_target(target: str) -> Dict[str, Any]:
     if not host:
         raise ValueError("host inválido")
 
-    # Keep "/" if no path, normalize to trailing slash for display/consistency
     path = u.path or "/"
     if not path.startswith("/"):
         path = "/" + path
@@ -186,10 +164,6 @@ def normalize_target(target: str) -> Dict[str, Any]:
         "port": port,
     }
 
-# =========================
-# Low-level helpers
-# =========================
-
 def now_utc_iso() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
@@ -202,7 +176,6 @@ def req_session(insecure: bool) -> requests.Session:
     s = requests.Session()
     s.headers.update({"User-Agent": UA, "Accept": "*/*"})
     s.verify = (not insecure)
-    # Reasonable retries could be added; keep it simple/robust with timeouts.
     return s
 
 def http_request(
@@ -223,7 +196,6 @@ def http_request(
         body_sample_truncated = False
         encoding = r.encoding or "utf-8"
 
-        # Keep sample small and safe
         if method.upper() != "HEAD":
             raw = r.content or b""
             body_sample_bytes = min(len(raw), 4096)
@@ -267,7 +239,6 @@ def extract_html_signals(html: str) -> Dict[str, Any]:
     h = html or ""
     signals = {}
 
-    # simple signals - extend as you like
     if "gtm.js" in h or "googletagmanager.com/gtm.js" in h:
         signals["google_tag_manager"] = True
     if "cloudflare" in h.lower():
@@ -277,9 +248,6 @@ def extract_html_signals(html: str) -> Dict[str, Any]:
 
     return signals
 
-# =========================
-# Probes
-# =========================
 
 def probe_dns(host: str) -> Dict[str, Any]:
     out: Dict[str, Any] = {"ok": True, "a": [], "aaaa": [], "cname": [], "mx": [], "txt": []}
@@ -298,8 +266,6 @@ def probe_dns(host: str) -> Dict[str, Any]:
     except Exception:
         out["ok"] = False
 
-    # CNAME/MX/TXT require dnspython; keep empty here (engine can fill later via optional deps)
-    # We keep placeholders so your schema stays stable.
     return out
 
 def probe_tls(host: str, port: int, insecure: bool) -> Dict[str, Any]:
@@ -333,7 +299,6 @@ def probe_tls(host: str, port: int, insecure: bool) -> Dict[str, Any]:
                 cert = ssock.getpeercert()
                 if cert:
                     res["peer_cert_available"] = True
-                    # Convert select fields for readability/stability
                     res["cert"] = {
                         "subject": cert.get("subject"),
                         "issuer": cert.get("issuer"),
@@ -342,13 +307,11 @@ def probe_tls(host: str, port: int, insecure: bool) -> Dict[str, Any]:
                         "subjectAltName": cert.get("subjectAltName"),
                     }
     except Exception:
-        # keep as not ok
         res["present"] = (port == 443)
         res["ok"] = False
     return res
 
 def probe_http_stack(sess: requests.Session, url: str) -> Dict[str, Any]:
-    # snapshot + GET + HEAD to gather headers/body
     snap = http_request(sess, "GET", url, timeout=12.0, allow_redirects=True)
     getr = snap
     headr = http_request(sess, "HEAD", url, timeout=12.0, allow_redirects=True)
@@ -371,7 +334,7 @@ def probe_http_stack(sess: requests.Session, url: str) -> Dict[str, Any]:
         "error": getr["error"],
         "final_url": getr["url"],
         "final_status": getr["status"],
-        "redirects": 0,  # requests followed; we don't expose the full chain without adapter hooks
+        "redirects": 0,
         "timing_total_ms": getr["elapsed_ms"],
         "chain": chain,
         "body_encoding": getr["body_encoding"],
@@ -407,8 +370,7 @@ def probe_cors(sess: requests.Session, url: str) -> Dict[str, Any]:
     """
     tls_verify = bool(getattr(sess, "verify", True))
     try:
-        # Prefer modular bundle if present
-        from probes.cors import probe_cors as _probe  # type: ignore
+        from probes.cors import probe_cors as _probe
         details = _probe(url, verify=tls_verify)
 
         items = details.get("items") or []
@@ -421,7 +383,6 @@ def probe_cors(sess: requests.Session, url: str) -> Dict[str, Any]:
             if best is None or sev_rank.get(it.get("risk"), 0) > sev_rank.get(best.get("risk"), 0):
                 best = it
 
-        # fallback: pick first dict-like item (even if ok=False) to at least show origin_test
         if best is None:
             for it in items:
                 if isinstance(it, dict):
@@ -446,7 +407,6 @@ def probe_cors(sess: requests.Session, url: str) -> Dict[str, Any]:
             "details": details,
         }
     except Exception as e:
-        # Fallback to legacy simplified behavior (still returns enterprise schema keys)
         origin = "https://example.com"
         try:
             r = sess.options(
@@ -518,7 +478,6 @@ def probe_exposure_files(sess: requests.Session, base_url: str) -> Dict[str, Any
         if r["ok"] and r["status"] == 200:
             item["body_sample"] = r["body_sample"]
             item["body_sample_truncated"] = r["body_sample_truncated"]
-            # lightweight signals
             sig = {}
             if pth == "/robots.txt":
                 sig["has_disallow"] = ("Disallow:" in r["body_sample"])
@@ -536,10 +495,9 @@ def probe_openapi(sess: requests.Session, base_url: str) -> Dict[str, Any]:
     Passive OpenAPI discovery. Uses bundled probe if available (supports larger fetch cap + YAML best-effort).
     """
     try:
-        from probes.openapi import probe_openapi as _probe  # type: ignore
+        from probes.openapi import probe_openapi as _probe
         return _probe(base_url, verify=sess.verify if hasattr(sess, "verify") else True)
     except Exception:
-        # legacy fallback: keep old small-sample method
         candidates = [
             "/swagger.json", "/swagger.yaml", "/openapi.json", "/openapi.yaml",
             "/api-docs", "/v2/api-docs", "/v3/api-docs",
@@ -559,7 +517,6 @@ def probe_openapi(sess: requests.Session, base_url: str) -> Dict[str, Any]:
         return {"ok": True, "items": items}
 
 def derive_security_findings(headers: Dict[str, str]) -> List[Dict[str, Any]]:
-    # Minimal but useful starter set (matches your JSON schema earlier)
     hp = {k.lower(): v for k, v in (headers or {}).items()}
     findings = []
 
@@ -575,7 +532,6 @@ def derive_security_findings(headers: Dict[str, str]) -> List[Dict[str, Any]]:
             "Resposta não inclui Content-Security-Policy (CSP).",
             {"header": "content-security-policy"})
 
-    # Rate-limit headers (informational)
     rl = ["ratelimit-limit", "ratelimit-remaining", "ratelimit-reset", "x-ratelimit-limit", "x-ratelimit-remaining", "x-ratelimit-reset"]
     if not any(h in hp for h in rl):
         add("SEC_HDR_RATELIMIT_MISSING", "info", "Headers de rate limit ausentes",
@@ -588,7 +544,6 @@ def derive_tech(headers: Dict[str, str], body_sample: str) -> List[Dict[str, Any
     h = {k.lower(): v for k, v in (headers or {}).items()}
     body = body_sample or ""
 
-    # Cloudflare
     if "server" in h and "cloudflare" in (h["server"] or "").lower():
         tech.append({
             "name": "Cloudflare",
@@ -600,7 +555,6 @@ def derive_tech(headers: Dict[str, str], body_sample: str) -> List[Dict[str, Any
                 "cf-cache-status": h.get("cf-cache-status"),
             }
         })
-    # Heroku hint via Via
     via = h.get("via", "")
     if "heroku-router" in via.lower():
         tech.append({
@@ -609,7 +563,6 @@ def derive_tech(headers: Dict[str, str], body_sample: str) -> List[Dict[str, Any
             "confidence": "medium",
             "evidence": {"header": "via", "value": via}
         })
-    # GTM in HTML
     if "gtm.js" in body or "googletagmanager.com/gtm.js" in body:
         tech.append({
             "name": "Google Tag Manager",
@@ -620,9 +573,6 @@ def derive_tech(headers: Dict[str, str], body_sample: str) -> List[Dict[str, Any
 
     return tech
 
-# =========================
-# Pretty printing (tables)
-# =========================
 
 ANSI_RE = re.compile(r"\x1b\[[0-9;]*m")
 
@@ -658,7 +608,6 @@ def clip_ansi(s: str, max_visible: int) -> str:
         vis += 1
         i += 1
 
-    # Garantir reset no fim para não “vazar” cor
     out.append("…")
     out.append(RESET)
     return "".join(out)
@@ -732,7 +681,6 @@ def boxed_section(title: str, lines: List[str], width: Optional[int] = None) -> 
     top = "┌" + "─" * inner + "┐"
     bot = "└" + "─" * inner + "┘"
     t = f" {title} "
-    # center title within inner (title has no ANSI)
     title_line = " " * max(0, (inner - len(t)) // 2) + t
     title_line = title_line + " " * max(0, inner - len(title_line))
     title_bar = "│" + title_line[:inner] + "│"
@@ -758,7 +706,6 @@ def kv_lines(pairs: List[Tuple[str, str]], pad_key: int = 10) -> List[str]:
     return lines
 
 def http_summary提醒(code: Optional[int]) -> str:
-    # Sem número — só um resumo humano
     return status_label(code)
 
 def print_scan_tables(result: Dict[str, Any]) -> None:
@@ -770,7 +717,6 @@ def print_scan_tables(result: Dict[str, Any]) -> None:
 
     w = min(120, max(86, term_width(100)))
 
-    # SUMMARY
     http = obs.get("http") or {}
     tls_verify_on = "ON" if (http.get("tls_verify") is True) else "OFF"
     final_status = http.get("final_status")
@@ -819,7 +765,7 @@ def print_scan_tables(result: Dict[str, Any]) -> None:
     dns_lines.append(f" TXT   ({len(txt)}): " + (", ".join([t[:40] + ('…' if len(t) > 40 else '') for t in txt[:2]]) if txt else "-"))
     print(boxed_section("DNS RECORDS (top)", dns_lines, width=w))
 
-    # OPENAPI / API DOCS (sem códigos no output)
+    # OPENAPI/API DOCS
     oa = (obs.get("openapi") or {})
     items = oa.get("items") or []
     oa_lines: List[str] = []
@@ -843,7 +789,7 @@ def print_scan_tables(result: Dict[str, Any]) -> None:
             oa_lines.append(f" {pth:<16} {c(lbl, col)}" + (f"  {extra}" if extra else ""))
     print(boxed_section("OPENAPI / API DOCS", oa_lines, width=w))
 
-    # EXPOSURE FILES (sem códigos no output)
+    # EXPOSURE FILES
     exp = (obs.get("exposure_files") or {})
     exp_items = exp.get("items") or []
     exp_lines: List[str] = []
@@ -860,7 +806,6 @@ def print_scan_tables(result: Dict[str, Any]) -> None:
     cors = (obs.get("cors_probe") or {})
     if cors.get("ok"):
         risk = cors.get("risk") or "-"
-        # Risk com cor discreta
         risk_col = C_RED if str(risk).lower() == "high" else (C_YEL if str(risk).lower() == "medium" else (C_CYA if str(risk).lower() == "low" else C_DIM))
         cors_lines = kv_lines([
             ("Origin", str(cors.get("origin"))),
@@ -873,7 +818,7 @@ def print_scan_tables(result: Dict[str, Any]) -> None:
         cors_lines = [f" error: {cors.get('error', 'unknown')}"]
     print(boxed_section("CORS PROBE", cors_lines, width=w))
 
-    # SECURITY FINDINGS (alinhado + severidade com caps)
+    # SECURITY FINDINGS
     sec_lines = []
     if sec:
         for f in sec[:12]:
@@ -892,9 +837,6 @@ def print_scan_tables(result: Dict[str, Any]) -> None:
         tech_lines.append(f" - {name} ({cat}, conf-{conf})")
     print(boxed_section("TECH FINGERPRINTS", tech_lines, width=w))
 
-# =========================
-# Scan orchestrator
-# =========================
 
 @dataclass
 class ProbeCounter:
@@ -917,16 +859,13 @@ def run_scan(target_str: str, insecure: bool) -> Dict[str, Any]:
 
     sess = req_session(insecure)
 
-    # Probe count: keep stable so progress always ends 100%
     probes = ProbeCounter(total=8)
 
     observations: Dict[str, Any] = {}
 
-    # DNS
     observations["dns"] = probe_dns(host)
     probes.tick()
 
-    # Transport (basic) + HTTP probes
     observations["transport"] = {
         "input_url": base_url,
         "input_scheme": scheme,
@@ -942,20 +881,17 @@ def run_scan(target_str: str, insecure: bool) -> Dict[str, Any]:
     }
     probes.tick()
 
-    # TLS
     if scheme == "https":
         observations["tls"] = probe_tls(host, 443, insecure)
     else:
         observations["tls"] = {"present": False, "ok": False, "verify": (not insecure)}
     probes.tick()
 
-    # HTTP
     http = probe_http_stack(sess, base_url)
-    observations["http_input_snapshot"] = http  # keep schema compat
+    observations["http_input_snapshot"] = http
     observations["http"] = http
     probes.tick()
 
-    # HEAD
     observations["http_head"] = {
         "ok": http.get("head", {}).get("ok", False),
         "tls_verify": bool(sess.verify),
@@ -981,23 +917,18 @@ def run_scan(target_str: str, insecure: bool) -> Dict[str, Any]:
     }
     probes.tick()
 
-    # Methods
     observations["method_probes"] = probe_methods(sess, base_url)
     probes.tick()
 
-    # CORS
     observations["cors_probe"] = probe_cors(sess, base_url)
     probes.tick()
 
-    # OIDC (not-found is NOT failure)
     observations["oidc_probe"] = probe_oidc(sess, base_url)
     probes.tick()
 
-    # Exposure/OpenAPI (extra enrichment, not included in "progress" gate in old versions)
-    # These are still collected here, but do NOT affect progress total to keep it stable in v2.
     observations["exposure_files"] = probe_exposure_files(sess, base_url)
     observations["openapi"] = probe_openapi(sess, base_url)
-    observations["mixed_content"] = {"ok": True, "count": 0, "examples": []}  # placeholder
+    observations["mixed_content"] = {"ok": True, "count": 0, "examples": []}
     observations["surface"] = {
         "ok": True,
         "forms_count": 0,
@@ -1008,7 +939,6 @@ def run_scan(target_str: str, insecure: bool) -> Dict[str, Any]:
         "api_hints": [],
     }
 
-    # Derived: security + tech + stack hints
     headers = (http.get("chain") or [{}])[0].get("headers") if http.get("chain") else (http.get("head", {}).get("headers") or {})
     findings = derive_security_findings(headers or {})
     observations["security"] = {
@@ -1083,9 +1013,6 @@ def save_result(result: Dict[str, Any]) -> Path:
     path.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
     return path
 
-# =========================
-# CLI / REPL
-# =========================
 
 def run_one(raw_cmd: str) -> int:
     try:
@@ -1123,14 +1050,11 @@ def repl() -> int:
             return 0
 
         rc = run_one(raw)
-        # keep REPL open regardless
         if rc not in (0,):
-            # don't exit on error in REPL
             continue
 
 def main(argv: List[str]) -> int:
     init(convert=True, strip=False, wrap=True)
-    # one-shot mode if user passed args
     if len(argv) > 1:
         raw = " ".join(argv[1:])
         return run_one(raw)
