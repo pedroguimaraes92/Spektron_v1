@@ -25,13 +25,11 @@ def _parse_json(text: str) -> Optional[Dict[str, Any]]:
         return None
 
 def _parse_yaml_best_effort(text: str) -> Optional[Dict[str, Any]]:
-    # Try PyYAML if present, otherwise minimal extraction.
     try:
-        import yaml  # type: ignore
+        import yaml
         obj = yaml.safe_load(text)
         return obj if isinstance(obj, dict) else None
     except Exception:
-        # minimal heuristic extraction
         out: Dict[str, Any] = {}
         for line in text.splitlines():
             if ":" not in line:
@@ -62,7 +60,7 @@ def _summarize(doc: Dict[str, Any]) -> Dict[str, Any]:
 
 def probe_openapi(base_url: str, *, verify: bool) -> JSON:
     items: List[JSON] = []
-    pol = NetPolicy(max_body_bytes=262144, max_sample_bytes=65536)  # bigger sample for spec
+    pol = NetPolicy(max_body_bytes=262144, max_sample_bytes=65536)
     for p in CANDIDATES:
         u = urljoin(base_url, p)
         r = fetch(u, "GET", verify=verify, allow_redirects=True, policy=pol)
