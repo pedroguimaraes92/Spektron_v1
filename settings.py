@@ -1,19 +1,3 @@
-# settings.py
-# Spektron Settings View — Hub Navigation (no tabs)
-#
-# NOTE:
-# - No changes to settings schema logic, persistence, or validation behavior.
-# - UI-only: replaces tab pills with a hub (5 cards) + back navigation.
-# - Top icon swaps per section using assets/icons.
-#
-# Icons (assets/icons):
-#   icon_attack_paths.png  -> Attack Engine
-#   icon_controls.png      -> General
-#   icon_capabilities.png  -> Paths & Storage
-#   icon_simulate.png      -> Scan Defaults
-#   icon_dns.png           -> Diagnostics
-#   icon_back.png          -> Back button
-
 import json
 import os
 from pathlib import Path
@@ -219,7 +203,6 @@ class SettingsView(QWidget):
         self._settings: Dict[str, Any] = {}
         self._load_settings()
 
-        # -------- Icon registry --------
         self._icon_files = {
             "HUB": "icon_settings.png",
             "General": "icon_controls.png",
@@ -246,7 +229,6 @@ class SettingsView(QWidget):
         icon_glow.setColor(QColor(124, 255, 158, 60))
         self._icon_label.setGraphicsEffect(icon_glow)
 
-        # Card
         self._card = QFrame()
         self._card.setMinimumWidth(980)
         self._card.setMaximumWidth(1040)
@@ -270,7 +252,6 @@ class SettingsView(QWidget):
         card_layout.setContentsMargins(38, 30, 38, 28)
         card_layout.setSpacing(0)
 
-        # Header
         title = QLabel("Settings")
         title_font = QFont("Segoe UI")
         title_font.setPixelSize(22)
@@ -291,9 +272,6 @@ class SettingsView(QWidget):
         card_layout.addWidget(subtitle)
         card_layout.addSpacing(18)
 
-        # Content host (stacked)
-        # NOTE (UI-only): remove the inner "card inside card" frame while preserving
-        # the exact content inset and geometry.
         self._content_host = QWidget()
         self._content_host.setStyleSheet("background: transparent;")
         self._content_host.setFixedHeight(420)
@@ -310,7 +288,6 @@ class SettingsView(QWidget):
         card_layout.addWidget(self._content_host)
         card_layout.addSpacing(18)
 
-        # Footer (buttons)
         footer_row = QHBoxLayout()
         footer_row.setContentsMargins(0, 0, 0, 0)
         footer_row.setSpacing(12)
@@ -321,7 +298,7 @@ class SettingsView(QWidget):
         self._run_validation_btn.setStyleSheet(self._button_style(kind="secondary"))
         self._apply_button_depth(self._run_validation_btn, strong=False)
         self._run_validation_btn.clicked.connect(self._run_validation)
-        self._run_validation_btn.hide()  # only on Diagnostics page
+        self._run_validation_btn.hide()
 
         self._save_btn = QPushButton("Save changes")
         self._save_btn.setCursor(Qt.PointingHandCursor)
@@ -341,7 +318,6 @@ class SettingsView(QWidget):
 
         self._card.setLayout(card_layout)
 
-        # Toast
         self._toast = QLabel(self._card)
         self._toast.setText("Saved")
         self._toast.setAlignment(Qt.AlignCenter)
@@ -366,27 +342,20 @@ class SettingsView(QWidget):
         root.addWidget(self._card, alignment=Qt.AlignHCenter)
         root.addStretch(1)
         self.setLayout(root)
-
-        # UI state holders (unchanged logic)
         self._ui_general = {}
         self._ui_scan = {}
         self._ui_attack = {}
         self._diag_badges = {}
         self._diag_vals = {}
 
-        # Build pages
         self._pages: Dict[str, QWidget] = {}
         self._build_hub_page()
         self._build_section_pages()
 
         self._stack.currentChanged.connect(self._on_page_changed)
 
-        # Start on hub
         self._go_hub()
 
-    # ==============================
-    # Layout events
-    # ==============================
     def resizeEvent(self, event):
         super().resizeEvent(event)
         try:
@@ -398,9 +367,6 @@ class SettingsView(QWidget):
         except Exception:
             pass
 
-    # ==============================
-    # Icon handling
-    # ==============================
     def _pix(self, key: str) -> QPixmap:
         if key in self._pix_cache:
             return self._pix_cache[key]
@@ -416,9 +382,6 @@ class SettingsView(QWidget):
         if not pm.isNull():
             self._icon_label.setPixmap(pm.scaled(118, 118, Qt.KeepAspectRatio, Qt.SmoothTransformation))
 
-    # ==============================
-    # Navigation
-    # ==============================
     def _go_hub(self) -> None:
         self._set_top_icon("HUB")
         self._run_validation_btn.hide()
@@ -430,7 +393,6 @@ class SettingsView(QWidget):
         self._stack.setCurrentWidget(self._pages[name])
 
     def _on_page_changed(self, _idx: int) -> None:
-        # keep run validation visibility safe even if setCurrentWidget happens elsewhere
         current = self._stack.currentWidget()
         section = None
         for k, w in self._pages.items():
@@ -442,9 +404,6 @@ class SettingsView(QWidget):
             return
         self._run_validation_btn.setVisible(section == "Diagnostics")
 
-    # ==============================
-    # Page builders
-    # ==============================
     def _build_hub_page(self) -> None:
         page = QWidget()
         page.setStyleSheet("background: transparent;")
@@ -489,7 +448,6 @@ class SettingsView(QWidget):
             c = i % 2
             grid.addWidget(btn, r, c)
 
-        # Make last item span both columns for symmetry
         if "Diagnostics" in buttons:
             grid.addWidget(buttons["Diagnostics"], 2, 0, 1, 2)
 
@@ -508,7 +466,6 @@ class SettingsView(QWidget):
             v.setContentsMargins(10, 10, 10, 10)
             v.setSpacing(12)
 
-            # Header row: back + section title
             header = QHBoxLayout()
             header.setContentsMargins(0, 0, 0, 0)
             header.setSpacing(10)
@@ -534,12 +491,10 @@ class SettingsView(QWidget):
 
             v.addLayout(header)
 
-            # Content container for the existing section renderers
             content = QVBoxLayout()
             content.setContentsMargins(0, 0, 0, 0)
             content.setSpacing(14)
 
-            # Render section into 'content' layout without changing data logic
             self._clear_section_state()
             if name == "General":
                 self._render_general(content)
@@ -562,9 +517,6 @@ class SettingsView(QWidget):
             self._pages[name] = page
             self._stack.addWidget(page)
 
-    # ==============================
-    # Visual system
-    # ==============================
     def _apply_button_depth(self, btn: QPushButton, strong: bool) -> None:
         eff = QGraphicsDropShadowEffect()
         eff.setOffset(0, 2 if strong else 1)
@@ -643,7 +595,6 @@ class SettingsView(QWidget):
         """
 
     def _input_style(self) -> str:
-        # IMPORTANT: startup_combo fully filled and no internal divider line
         return """
             QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox {
                 background-color: rgba(0,0,0,18);
@@ -746,9 +697,6 @@ class SettingsView(QWidget):
         box.setLayout(v)
         return box
 
-    # ==============================
-    # Section state management (UI-only)
-    # ==============================
     def _clear_section_state(self) -> None:
         self._ui_general = {}
         self._ui_scan = {}
@@ -756,9 +704,6 @@ class SettingsView(QWidget):
         self._diag_badges = {}
         self._diag_vals = {}
 
-    # ==============================
-    # Persistence (unchanged logic)
-    # ==============================
     def _load_settings(self) -> None:
         loaded, ok = _safe_read_json(SETTINGS_PATH)
         self._raw_loaded = loaded if ok else {}
@@ -867,9 +812,6 @@ class SettingsView(QWidget):
         except Exception as e:
             QMessageBox.critical(self, "Settings", f"Failed to save settings.\n\n{e}")
 
-    # ==============================
-    # Content renderers (same content, different target layout)
-    # ==============================
     def _row(self, left: QWidget, right: QWidget, right_stretch: bool = False) -> QHBoxLayout:
         row = QHBoxLayout()
         row.setSpacing(12)
@@ -1106,9 +1048,6 @@ class SettingsView(QWidget):
             }
         """
 
-    # ==============================
-    # Actions (unchanged)
-    # ==============================
     def _open_output_folders(self) -> None:
         base = OUTPUT_DIR
         try:
@@ -1135,7 +1074,6 @@ class SettingsView(QWidget):
             self._raw_loaded = dict(DEFAULTS)
             self._settings = dict(DEFAULTS)
 
-            # Rebuild pages so controls refresh
             self._stack.blockSignals(True)
             self._stack.setCurrentWidget(self._pages["HUB"])
             for k in ["General", "Paths & Storage", "Scan Defaults", "Attack Engine", "Diagnostics"]:
@@ -1174,7 +1112,6 @@ class SettingsView(QWidget):
             badge.setText(badge_text)
             val.setText(value_text)
 
-        # CORE modules loaded
         core_ok = False
         core_badge = "MISSING"
         core_val = "not found"
@@ -1198,7 +1135,6 @@ class SettingsView(QWidget):
             core_val = "error"
         set_row("core", core_ok, core_badge, core_val)
 
-        # output folders present
         folders_ok = True
         try:
             needed = [
@@ -1214,7 +1150,6 @@ class SettingsView(QWidget):
             folders_ok = False
         set_row("folders", folders_ok, "OK" if folders_ok else "MISSING", "evidence/attack/targets/settings")
 
-        # settings json parse
         json_ok = False
         try:
             _, ok = _safe_read_json(SETTINGS_PATH)
@@ -1223,7 +1158,6 @@ class SettingsView(QWidget):
             json_ok = False
         set_row("json", json_ok, "OK" if json_ok else "WARN", "parse")
 
-        # write access to output
         write_ok = False
         try:
             test = OUTPUT_DIR / ".write_test.tmp"
