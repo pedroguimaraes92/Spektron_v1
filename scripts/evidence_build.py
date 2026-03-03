@@ -1,20 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Spektron v1 - Evidence Builder
-
-ENTRADA:
-  - Um ou mais arquivos JSON em output/scan/scan_*.json (gerados por scripts/scan2.py)
-
-SAÍDA:
-  - output/evidence/evidence_<scan_id>.v1.json
-  - output/evidence/evidence_index.v1.json
-
-EXECUÇÃO:
-  python scripts/evidence_build.py output/scan/scan_petstore.swagger.io_20260225T201210Z.json
-  python scripts/evidence_build.py output/scan/
-"""
-
 from __future__ import annotations
 
 import hashlib
@@ -26,10 +9,6 @@ from typing import Any, Dict, List, Optional, Tuple
 
 JSON = Dict[str, Any]
 
-# =========================
-# Paths
-# =========================
-
 ROOT = Path(__file__).resolve().parents[1]
 OUT_EVIDENCE_DIR = ROOT / "output" / "evidence"
 
@@ -38,9 +17,6 @@ CORE_TYPES_PATH = CORE_DIR / "core_types.v1.json"
 EVIDENCE_TYPES_PATH = CORE_DIR / "evidence_types.v1.json"
 
 
-# =========================
-# IO helpers
-# =========================
 
 def _now_utc_iso_z() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
@@ -83,9 +59,6 @@ def _scan_id_from_filename(p: Path) -> str:
     return name
 
 
-# =========================
-# Canonicalization / Hashing
-# =========================
 
 def _canonicalize(obj: Any, *, key_hint: Optional[str] = None) -> Any:
     """
@@ -139,10 +112,6 @@ def _stable_id(target_normalized: str, ev_type: str, value: JSON) -> str:
     return f"ev_{h[:24]}"
 
 
-# =========================
-# Contracts
-# =========================
-
 def _load_contracts() -> Tuple[JSON, JSON, Dict[str, JSON], Dict[str, str]]:
     core = _read_json(CORE_TYPES_PATH)
     ev = _read_json(EVIDENCE_TYPES_PATH)
@@ -166,9 +135,6 @@ def _strength_for(ev_type: str, default_strength: Dict[str, str]) -> str:
     return "moderate"
 
 
-# =========================
-# Extraction helpers
-# =========================
 
 SEC_HEADERS_BASE = [
     "Strict-Transport-Security",
@@ -322,9 +288,6 @@ def _is_self_signed(cert: Any) -> Optional[bool]:
         return None
 
 
-# =========================
-# Evidence construction
-# =========================
 
 def _mk_evidence(
     *,
@@ -370,7 +333,6 @@ def build_evidences_for_scan(scan: JSON, scan_path: Path, default_strength: Dict
 
     evidences: List[JSON] = []
 
-    # net.port.open
     if isinstance(port, int) and port > 0:
         service_hint = None
         if scheme == "https":
@@ -390,7 +352,6 @@ def build_evidences_for_scan(scan: JSON, scan_path: Path, default_strength: Dict
             )
         )
 
-    # net.service.http / net.service.https
     http_obs = (obs.get("http") or {})
     final_url = str(http_obs.get("final_url") or target_norm).strip()
     final_status = http_obs.get("final_status")
@@ -434,7 +395,6 @@ def build_evidences_for_scan(scan: JSON, scan_path: Path, default_strength: Dict
             )
         )
 
-    # DNS records
     dns_obs = (obs.get("dns") or {})
     if host:
         for ip in (dns_obs.get("a") or []):
@@ -497,7 +457,6 @@ def build_evidences_for_scan(scan: JSON, scan_path: Path, default_strength: Dict
                     )
                 )
 
-    # TLS evidences
     tls_obs = (obs.get("tls") or {})
     tls_present = bool(tls_obs.get("present")) if isinstance(tls_obs, dict) else False
     if tls_present:
@@ -514,7 +473,6 @@ def build_evidences_for_scan(scan: JSON, scan_path: Path, default_strength: Dict
             )
         )
 
-        # tls.version
         v = None
         if isinstance(tls_obs.get("tls_version"), str):
             v = tls_obs.get("tls_version")
@@ -534,7 +492,6 @@ def build_evidences_for_scan(scan: JSON, scan_path: Path, default_strength: Dict
                 )
             )
 
-        # tls.verify
         verified = None
         err = None
         if isinstance(tls_obs.get("ok"), bool):
@@ -557,7 +514,6 @@ def build_evidences_for_scan(scan: JSON, scan_path: Path, default_strength: Dict
                 )
             )
 
-        # tls.cipher_suite
         cipher_name = None
         c = tls_obs.get("cipher")
         if isinstance(c, dict) and isinstance(c.get("name"), str) and c.get("name").strip():
@@ -582,7 +538,6 @@ def build_evidences_for_scan(scan: JSON, scan_path: Path, default_strength: Dict
                 )
             )
 
-        # tls.cert.expiry_days / tls.cert.chain
         cert = tls_obs.get("cert")
         if not isinstance(cert, dict):
             h = tls_obs.get("handshake")
@@ -625,7 +580,6 @@ def build_evidences_for_scan(scan: JSON, scan_path: Path, default_strength: Dict
                 )
             )
 
-    # http.status
     if final_url and isinstance(final_status, int):
         evidences.append(
             _mk_evidence(
@@ -640,7 +594,6 @@ def build_evidences_for_scan(scan: JSON, scan_path: Path, default_strength: Dict
             )
         )
 
-    # http.redirect.chain (se houver)
     tr = (obs.get("transport") or {})
     redirect_chain = tr.get("redirect_chain")
     if isinstance(redirect_chain, list) and len(redirect_chain) >= 2:
@@ -699,7 +652,6 @@ def build_evidences_for_scan(scan: JSON, scan_path: Path, default_strength: Dict
             except Exception:
                 pass
 
-    # http.header.present + http.header.missing
     headers = _headers_from_scan(scan)
     hl = _lower_headers(headers)
     url_for_headers = final_url or target_norm
@@ -754,7 +706,6 @@ def build_evidences_for_scan(scan: JSON, scan_path: Path, default_strength: Dict
             )
         )
 
-    # http.cookie.set
     set_cookie_raw = None
     for k in ("set-cookie", "set_cookie", "setcookie"):
         if k in hl and hl.get(k):
@@ -784,7 +735,6 @@ def build_evidences_for_scan(scan: JSON, scan_path: Path, default_strength: Dict
                 )
             )
 
-    # http.banner.server / http.banner.powered_by
     server = hl.get("server")
     if isinstance(server, str) and server.strip():
         evidences.append(
@@ -815,7 +765,6 @@ def build_evidences_for_scan(scan: JSON, scan_path: Path, default_strength: Dict
             )
         )
 
-    # tech.detected
     tech_items = scan.get("tech") or []
     if isinstance(tech_items, list):
         for t in tech_items:
@@ -841,7 +790,6 @@ def build_evidences_for_scan(scan: JSON, scan_path: Path, default_strength: Dict
                 )
             )
 
-    # cloud.ip_match (opcional; só se scan explicitamente trouxer)
     cloud = (obs.get("cloud") or {})
     if isinstance(cloud, dict):
         provider = cloud.get("provider")
@@ -866,7 +814,6 @@ def build_evidences_for_scan(scan: JSON, scan_path: Path, default_strength: Dict
                 )
             )
 
-    # De-dup por ID (determinístico)
     uniq: Dict[str, JSON] = {}
     for e in evidences:
         if not isinstance(e, dict):
@@ -878,9 +825,6 @@ def build_evidences_for_scan(scan: JSON, scan_path: Path, default_strength: Dict
     return list(uniq.values())
 
 
-# =========================
-# Index building
-# =========================
 
 def _build_global_index(per_scan_outputs: List[Tuple[str, str, str, int, List[JSON]]]) -> JSON:
     """
@@ -940,9 +884,6 @@ def _build_global_index(per_scan_outputs: List[Tuple[str, str, str, int, List[JS
     }
 
 
-# =========================
-# CLI
-# =========================
 
 def _collect_scan_files(arg: str) -> List[Path]:
     p = Path(arg)
@@ -1018,7 +959,6 @@ def main(argv: List[str]) -> int:
     index_path = OUT_EVIDENCE_DIR / "evidence_index.v1.json"
     _write_json(index_path, index_obj)
 
-    # Resumo curto
     print(f"scans: {len(per_scan_outputs)}")
     for scan_id, _host, ev_file, cnt, _evidences in per_scan_outputs:
         print(f"{scan_id}: evidences={cnt} -> {OUT_EVIDENCE_DIR / ev_file}")
@@ -1029,3 +969,4 @@ def main(argv: List[str]) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main(sys.argv))
+
