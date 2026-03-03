@@ -16,11 +16,11 @@ class Target:
 
 @dataclass
 class ScanContext:
-    root: Any  # Path
+    root: Any
     version: str
-    generated_at: str  # ISO8601
+    generated_at: str
     scan_id: str
-    started_at: str  # ISO8601
+    started_at: str
     ended_at: Optional[str]
     insecure: bool
     target: Target
