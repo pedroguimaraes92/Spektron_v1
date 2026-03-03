@@ -5,9 +5,9 @@ from typing import Any, Dict, Optional, Tuple, List
 import time
 
 try:
-    import requests  # type: ignore
-except Exception:  # pragma: no cover
-    requests = None  # type: ignore
+    import requests
+except Exception:
+    requests = None
 
 JSON = Dict[str, Any]
 
@@ -19,14 +19,13 @@ class NetPolicy:
     connect_timeout_s: float = 6.0
     max_retries: int = 1
     backoff_s: float = 0.35
-    max_body_bytes: int = 262144  # 256 KiB safe cap for passive recon
+    max_body_bytes: int = 262144
     max_sample_bytes: int = 4096
 
 def _headers_raw(headers: Dict[str, str]) -> List[List[str]]:
     return [[k, v] for k, v in headers.items()]
 
 def _safe_text(b: bytes) -> str:
-    # keep deterministic decode
     try:
         return b.decode("utf-8", "ignore")
     except Exception:
@@ -52,12 +51,7 @@ def fetch(
     allow_redirects: bool = True,
     stream: bool = True,
 ) -> JSON:
-    """
-    Enterprise-ish fetch:
-    - captures redirect chain (response.history)
-    - bounded body read (max_body_bytes)
-    - returns ok/error/timing/retries
-    """
+
     if requests is None:
         return {"ok": False, "error": "requests_not_available", "url": url, "method": method.upper()}
 
@@ -66,7 +60,6 @@ def fetch(
     err: Optional[str] = None
     retries = 0
 
-    # requests timeout can be (connect, read)
     timeout = (pol.connect_timeout_s, pol.timeout_s)
 
     def _do_req() -> Any:
@@ -84,7 +77,6 @@ def fetch(
     for attempt in range(pol.max_retries + 1):
         try:
             resp = _do_req()
-            # retry only if HTTP transient
             if resp is not None and resp.status_code in TRANSIENT_STATUS and attempt < pol.max_retries:
                 retries += 1
                 time.sleep(pol.backoff_s * (attempt + 1))
@@ -111,7 +103,6 @@ def fetch(
             "retries": retries,
         }
 
-    # redirect chain: history + final
     chain: List[JSON] = []
 
     def _one(r: Any) -> JSON:
@@ -130,7 +121,6 @@ def fetch(
     except Exception:
         pass
 
-    # bounded read
     body_bytes = b""
     body_truncated = False
     body_sample = ""
@@ -152,7 +142,6 @@ def fetch(
                     break
             body_bytes = b"".join(chunks)
         except Exception:
-            # fallback to .content but capped
             try:
                 body_bytes = (resp.content or b"")[: pol.max_body_bytes]
                 body_truncated = len(resp.content or b"") > pol.max_body_bytes
