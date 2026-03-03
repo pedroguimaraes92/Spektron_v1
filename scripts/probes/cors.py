@@ -13,7 +13,6 @@ def _risk_from(acao: Optional[str], acac: Optional[str], origin: str, reflected:
         return "high"
     if reflected:
         return "medium"
-    # wildcard without credentials is usually lower risk (still can matter for read-only endpoints)
     if (acao or "").strip() == "*" and not acac_true:
         return "low"
     return "info"
@@ -81,6 +80,5 @@ def probe_cors(base_url: str, *, verify: bool) -> JSON:
             "risk": _risk_from(acao, acac, origin, reflected),
         })
 
-    # preflight with a likely-auth header
     pre = _preflight(base_url, verify=verify, origin="https://evil.com", req_method="GET", req_headers="Authorization")
     return {"ok": True, "url": base_url, "items": items, "preflight": pre}
