@@ -25,7 +25,6 @@ def probe_dns(host: str) -> Dict[str, Any]:
         "txt": [],
     }
 
-    # A/AAAA
     try:
         infos = socket.getaddrinfo(host, None, proto=socket.IPPROTO_TCP)
         a, aaaa = [], []
@@ -40,19 +39,16 @@ def probe_dns(host: str) -> Dict[str, Any]:
     except Exception:
         pass
 
-    # Optional richer records
     try:
-        import dns.resolver  # type: ignore
-        import dns.rdatatype  # type: ignore
+        import dns.resolver
+        import dns.rdatatype
 
         r = dns.resolver.Resolver()
-        # CNAME
         try:
             ans = r.resolve(host, "CNAME")
             res["cname"] = _uniq([str(x.target).rstrip(".") for x in ans])
         except Exception:
             res["cname"] = []
-        # MX
         mx_items = []
         try:
             ans = r.resolve(host, "MX")
@@ -61,12 +57,10 @@ def probe_dns(host: str) -> Dict[str, Any]:
         except Exception:
             mx_items = []
         res["mx"] = mx_items
-        # TXT
         txt_items = []
         try:
             ans = r.resolve(host, "TXT")
             for x in ans:
-                # dnspython returns list of byte strings per record
                 chunks = []
                 for c in getattr(x, "strings", []) or []:
                     try:
@@ -78,7 +72,6 @@ def probe_dns(host: str) -> Dict[str, Any]:
             txt_items = []
         res["txt"] = _uniq(txt_items)
     except Exception:
-        # dnspython not installed
         pass
 
     res["ok"] = True if (res.get("a") or res.get("aaaa") or res.get("cname") or res.get("mx") or res.get("txt")) else True
