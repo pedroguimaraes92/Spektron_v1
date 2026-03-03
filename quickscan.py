@@ -154,7 +154,6 @@ def _to_english_finding(title: str) -> str:
 
     low = t.lower()
 
-    # Already English-ish? keep it.
     if any(x in low for x in ("missing", "rate limit", "headers", "tls", "hsts", "csp", "not ", "disabled", "enabled")) and not any(
         x in low for x in ("ausente", "cabeç", "cabec", "falt", "insegur")
     ):
@@ -265,9 +264,6 @@ def _extract_summary_from_json(doc: dict) -> dict:
     return out
 
 
-# -------------------------
-# Structured Output Widgets
-# -------------------------
 
 class FlowLayout(QLayout):
     """A minimal flow layout for wrapping 'chip' widgets."""
@@ -392,7 +388,7 @@ class OutputView(QScrollArea):
         self._scan_glow_pulse = False
 
     def clear(self):
-        # remove everything except spacer
+        
         while self._layout.count() > 0:
             item = self._layout.takeAt(0)
             if item is None:
@@ -545,7 +541,6 @@ class OutputView(QScrollArea):
             empty.setFont(_pick_ui_font(9))
             bv.addWidget(empty)
 
-        # Two-column cards: HEADERS + TECH
         two = QFrame()
         two.setObjectName("two_col")
         grid = QHBoxLayout(two)
@@ -664,7 +659,6 @@ class QuickScanWindow(QWidget):
         self.card = QFrame(self)
         self.card.setObjectName("card")
 
-        # Ensure background never blocks interaction
         self.bg.lower()
         self.card.raise_()
 
@@ -734,7 +728,6 @@ class QuickScanWindow(QWidget):
         self.lbl_section.setFont(_pick_ui_font(10))
         card_layout.addWidget(self.lbl_section)
 
-        # Structured output
         self.output = OutputView()
         self.output.setMinimumHeight(320)
         self.output._scan_glow_alpha = 100
@@ -1096,9 +1089,9 @@ class QuickScanWindow(QWidget):
         self.btn_exit.setEnabled(not busy)
         self.in_target.setEnabled(not busy)
 
-        # Progress bar: indeterminate while scanning, empty when idle (no attribute selectors).
+
         if busy:
-            self.loading.setRange(0, 0)  # indeterminate
+            self.loading.setRange(0, 0) 
             eff = QGraphicsDropShadowEffect(self.loading)
             eff.setBlurRadius(self._loading_glow_blur)
             eff.setOffset(0, 0)
@@ -1109,7 +1102,6 @@ class QuickScanWindow(QWidget):
             self.loading.setValue(0)
             self.loading.setGraphicsEffect(None)
 
-        # Refresh style in case platform styles cache metrics
         self.loading.style().unpolish(self.loading)
         self.loading.style().polish(self.loading)
         self.loading.update()
@@ -1125,7 +1117,6 @@ class QuickScanWindow(QWidget):
         self._stderr = ""
         self._scan_start_ts = time.time()
 
-        # keep SCANNING label in green (card title is green via style)
         self.output.set_scanning()
         self._set_busy(True)
 
@@ -1147,7 +1138,6 @@ class QuickScanWindow(QWidget):
         self._proc.start(py, args)
 
     def _on_proc_error(self, err):
-        # UI-only resilience: ensure we don't get stuck in a disabled state.
         self._proc = None
         self._set_busy(False)
         self.output.set_error("SCAN ERROR", "The scan process could not be started or crashed.")
