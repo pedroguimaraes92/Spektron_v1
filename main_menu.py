@@ -1,5 +1,3 @@
-# main_menu.py
-
 import sys
 import json
 from datetime import datetime, timezone
@@ -33,7 +31,6 @@ from about import AboutView
 from settings import SettingsView
 from full_scan import FullScanWidget
 
-# ✅ Targets
 from targets import TargetsWidget
 
 
@@ -137,21 +134,18 @@ class MainMenu(QWidget):
         self._full_scan_view = None
         self._attack_paths_view = None
 
-        # ✅ Targets
         self._targets_view = None
 
-        self._active_scan_id = None  # last known scan_id (from Full Scan)
+        self._active_scan_id = None
         self._sidebar_buttons = {}
         self._placeholder_card = None
         self._content_layout = None
 
-        # Topbar dynamic label (existing QLabel only)
         self._topbar_center_label = None
         self._last_scan_host = None
-        self._last_scan_generated_at = None  # datetime
+        self._last_scan_generated_at = None
         self._topbar_timer = None
 
-        # Full scan hook state
         self._full_scan_hooks_installed = False
         self._scan_refresh_retries_left = 0
 
@@ -505,9 +499,9 @@ class MainMenu(QWidget):
         if self._attack_paths_view is None:
             try:
                 try:
-                    from attack_paths import AttackPathsWidget  # type: ignore
+                    from attack_paths import AttackPathsWidget
                 except Exception:
-                    from ui.attack_paths import AttackPathsWidget  # type: ignore
+                    from ui.attack_paths import AttackPathsWidget
                 self._attack_paths_view = AttackPathsWidget()
             except Exception as e:
                 QMessageBox.critical(self, "Attack Paths", f"Failed to load Attack Paths.\n\n{e}")
@@ -552,9 +546,9 @@ class MainMenu(QWidget):
         if self._reports_view is None:
             try:
                 try:
-                    from reports import ReportsWidget  # type: ignore
+                    from reports import ReportsWidget
                 except Exception:
-                    from ui.reports import ReportsWidget  # type: ignore
+                    from ui.reports import ReportsWidget
                 self._reports_view = ReportsWidget()
             except Exception as e:
                 QMessageBox.critical(self, "Reports", f"Failed to load Reports.\n\n{e}")
@@ -609,7 +603,6 @@ class MainMenu(QWidget):
                 self._content_layout.addWidget(self._full_scan_view)
             self._full_scan_view.show()
 
-    # ✅ Targets hook
     def _on_sidebar_targets_clicked(self):
         if self._about_view is not None:
             self._about_view.hide()
@@ -656,9 +649,6 @@ class MainMenu(QWidget):
         if self._placeholder_card is not None:
             self._placeholder_card.show()
 
-    # =========================
-    # External navigation hooks
-    # =========================
     def go_full_scan(self, scan_id: str):
         sid = (scan_id or "").strip()
         if sid:
@@ -740,9 +730,6 @@ class MainMenu(QWidget):
                 except Exception:
                     pass
 
-    # =========================
-    # Topbar dynamic scan labels
-    # =========================
     def _init_topbar_dynamic_labels(self):
         self._load_last_scan_from_filesystem()
         self._update_topbar_text()
@@ -833,12 +820,10 @@ class MainMenu(QWidget):
         if not s:
             return None
 
-        # strip path/query/fragment
         for sep in ("/", "?", "#"):
             if sep in s:
                 s = s.split(sep, 1)[0].strip()
 
-        # strip trailing port if empty or spaces (keep normal ports)
         s = s.strip()
         return s or None
 
@@ -883,16 +868,12 @@ class MainMenu(QWidget):
         self._last_scan_host = best_host
         self._last_scan_generated_at = best_dt
 
-    # =========================
-    # Full Scan -> Topbar hooks
-    # =========================
     def _wire_full_scan_dynamic_hooks(self):
         if self._full_scan_view is None or self._full_scan_hooks_installed:
             return
 
         self._full_scan_hooks_installed = True
 
-        # 1) Hook "start scan" button (best-effort)
         start_btn = None
         for name in ("btn_scan", "btn_run", "btn_start", "btn_full_scan", "run_btn", "start_btn", "b_start", "b_run"):
             if hasattr(self._full_scan_view, name):
@@ -922,7 +903,6 @@ class MainMenu(QWidget):
             except Exception:
                 pass
 
-        # 2) Hook "scan finished" (signals + QProcess)
         for sig_name in (
             "scanCompleted", "scanFinished", "scanSucceeded", "scanSuccess",
             "completed", "finished", "success",
@@ -965,7 +945,6 @@ class MainMenu(QWidget):
             self._update_topbar_text()
 
     def _on_full_scan_finished(self, *args, **kwargs):
-        # files can land a bit later; retry a few times quickly
         self._scan_refresh_retries_left = 10
         self._refresh_last_scan_with_retries()
 
@@ -975,7 +954,6 @@ class MainMenu(QWidget):
         self._load_last_scan_from_filesystem()
         self._update_topbar_text()
 
-        # stop early if we got something newer than "just now" placeholder
         if prev_dt is None and self._last_scan_generated_at is not None:
             return
         if prev_dt is not None and self._last_scan_generated_at is not None:
