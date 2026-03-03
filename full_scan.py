@@ -1,4 +1,3 @@
-# full_scan.py
 import json
 import re
 import sys
@@ -21,7 +20,6 @@ from PySide6.QtWidgets import (
     QSizePolicy,
 )
 
-# Reuso TOTAL da estética/renderer do QuickScan (sem alterar quickscan.py)
 from quickscan import (
     OutputView,
     FlowLayout,
@@ -173,12 +171,8 @@ class FullOutputView(OutputView):
         """
         self.clear()
 
-        # --- Baseline summary (same as quickscan) for consistent sections ---
         summary = _extract_summary_from_json(doc)
 
-        # =====================
-        # 1) TARGET (quick style)
-        # =====================
         target_url = summary.get("target") or _safe_get(doc, ["target", "normalized"]) or "-"
         tls_version = summary.get("tls_version") or _safe_get(doc, ["observations", "tls", "tls_version"]) or "-"
         tls_verify = bool(_safe_get(doc, ["observations", "tls", "verify"], False))
@@ -195,9 +189,6 @@ class FullOutputView(OutputView):
         tls_label = f"{tls_label} · Verified" if tls_verify else f"{tls_label} · OK"
         bv.addWidget(Badge(tls_label, "ok" if tls_verify else "neutral"))
 
-        # =====================
-        # 2) SCAN SUMMARY (produto, sem CLI)
-        # =====================
         card, head, body, bv = self._add_card("SCAN SUMMARY")
         host = _safe_get(doc, ["target", "host"]) or "-"
         scheme = _safe_get(doc, ["target", "scheme"]) or "-"
@@ -214,9 +205,6 @@ class FullOutputView(OutputView):
         line2.setFont(_pick_ui_font(9))
         bv.addWidget(line2)
 
-        # =====================
-        # 3) TRANSPORT & TLS (card)
-        # =====================
         card, head, body, bv = self._add_card("TRANSPORT & TLS")
 
         final_url = _safe_get(doc, ["observations", "transport", "final_url"]) or "-"
@@ -246,9 +234,6 @@ class FullOutputView(OutputView):
             flow.addWidget(Chip(f"Cert exp: {cert_exp}"))
         bv.addWidget(chips_wrap)
 
-        # =====================
-        # 4) DNS RECORDS (card)
-        # =====================
         card, head, body, bv = self._add_card("DNS RECORDS")
 
         a = _safe_get(doc, ["observations", "dns", "a"], []) or []
@@ -299,10 +284,6 @@ class FullOutputView(OutputView):
             note.setFont(_pick_ui_font(9))
             bv.addWidget(note)
 
-        # =====================
-        # 5) SECURITY FINDINGS (quick style)
-        # =====================
-        # reuse quickscan summary findings already normalized
         findings = summary.get("findings") or []
         card, head, body, bv = self._add_card("SECURITY FINDINGS")
         if findings:
@@ -330,15 +311,11 @@ class FullOutputView(OutputView):
             empty.setFont(_pick_ui_font(9))
             bv.addWidget(empty)
 
-        # =====================
-        # 6) Exposure Files (card) - Found/Not Found summary
-        # =====================
         card, head, body, bv = self._add_card("EXPOSURE FILES")
         exp_items = _safe_get(doc, ["observations", "exposure_files", "items"], []) or []
         found = [it for it in exp_items if isinstance(it, dict) and int(it.get("status") or 0) in (200, 204)]
         not_found = [it for it in exp_items if isinstance(it, dict) and int(it.get("status") or 0) == 404]
 
-        # headline badges
         hrow = QHBoxLayout()
         hrow.setContentsMargins(0, 0, 0, 0)
         hrow.setSpacing(10)
@@ -362,9 +339,6 @@ class FullOutputView(OutputView):
             empty.setFont(_pick_ui_font(9))
             bv.addWidget(empty)
 
-        # =====================
-        # 7) API DOCS (OpenAPI discovery)
-        # =====================
         card, head, body, bv = self._add_card("API DOCS")
         oa_items = _safe_get(doc, ["observations", "openapi", "items"], []) or []
         oa_found = [it for it in oa_items if isinstance(it, dict) and int(it.get("status") or 0) in (200, 204)]
@@ -376,7 +350,6 @@ class FullOutputView(OutputView):
                 flow.addWidget(Chip(str(it.get("path") or "-")))
             bv.addWidget(wrap)
         else:
-            # show a compact shortlist with human labels (no raw status codes)
             shown = 0
             for it in oa_items[:8]:
                 if not isinstance(it, dict):
@@ -403,9 +376,6 @@ class FullOutputView(OutputView):
                 empty.setFont(_pick_ui_font(9))
                 bv.addWidget(empty)
 
-        # =====================
-        # 8) CORS (card)
-        # =====================
         card, head, body, bv = self._add_card("CORS PROBE")
         cors = _safe_get(doc, ["observations", "cors_probe"], {}) or {}
         ok = bool(cors.get("ok"))
@@ -447,9 +417,6 @@ class FullOutputView(OutputView):
             empty.setFont(_pick_ui_font(9))
             bv.addWidget(empty)
 
-        # =====================
-        # 9) TECHNOLOGIES + HEADERS (two-column like quickscan)
-        # =====================
         missing_headers = summary.get("missing_headers") or []
         tech = summary.get("tech") or []
 
@@ -521,13 +488,9 @@ class FullOutputView(OutputView):
 
         grid.addWidget(headers_card, 1)
         grid.addWidget(tech_card, 1)
-
-        # OutputView internals: insert just before spacer
+        
         self._layout.insertWidget(self._layout.count() - 1, two)
 
-        # =====================
-        # 10) OPEN PORTS (quick style)
-        # =====================
         ports = summary.get("open_ports") or []
         card, head, body, bv = self._add_card("OPEN PORTS")
         ports_text = ", ".join(str(p) for p in ports) if ports else "None reported"
@@ -540,9 +503,9 @@ class FullOutputView(OutputView):
 
 
 class FullScanWidget(QWidget):
-    viewAttackPathsRequested = Signal(str)  # scan_id
-    viewTopRiskRequested = Signal(str)      # scan_id
-    openReportsRequested = Signal(str)      # scan_id
+    viewAttackPathsRequested = Signal(str)
+    viewTopRiskRequested = Signal(str)
+    openReportsRequested = Signal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -554,15 +517,12 @@ class FullScanWidget(QWidget):
 
         self._scan_json_path: Path | None = None
         self._scan_id: str | None = None
-        self._stage = "idle"  # idle | scan | evidence | attack
+        self._stage = "idle"
 
         self._build_ui()
         self._apply_styles()
         self._reset_view()
 
-    # =========================
-    # UI
-    # =========================
     def _build_ui(self):
         self.setStyleSheet("background: transparent;")
 
@@ -648,7 +608,6 @@ class FullScanWidget(QWidget):
         self.output._scan_glow_pulse = False
         card_layout.addWidget(self.output, 1)
 
-        # Sem pipeline text
         self.footer_text = QLabel("Full scan results are available in Reports.")
         self.footer_text.setObjectName("footer")
         self.footer_text.setFont(_pick_ui_font_local(15))
@@ -665,7 +624,6 @@ class FullScanWidget(QWidget):
         footer_layout.setContentsMargins(0, 0, 0, 0)
         footer_layout.setSpacing(18)
 
-        # Progress bar (mesmo comportamento do QuickScan)
         self.loading = QProgressBar()
         self.loading.setObjectName("loading")
         self.loading.setFixedHeight(6)
@@ -685,7 +643,7 @@ class FullScanWidget(QWidget):
         self.btn_run.clicked.connect(self._on_run_full_scan)
 
         self.btn_clean = QPushButton("CLEAN")
-        self.btn_clean.setObjectName("btn_exit")  # mantém o mesmo estilo/QSS
+        self.btn_clean.setObjectName("btn_exit")
         self.btn_clean.setFixedSize(170, 44)
         self.btn_clean.setFont(_pick_ui_font_local(10))
         self.btn_clean.clicked.connect(self._reset_view)
@@ -742,7 +700,6 @@ class FullScanWidget(QWidget):
         title_glow.setColor(QColor(140, 255, 140, 28))
         self.title.setGraphicsEffect(title_glow)
 
-        # Mesmo QSS do QuickScan (escopo local), sem mexer no global
         self.setStyleSheet("""
             QWidget { background: transparent; color: rgba(235,238,242,210); }
 
@@ -992,9 +949,6 @@ class FullScanWidget(QWidget):
             }
         """)
 
-    # =========================
-    # Reset/Clean
-    # =========================
     def _reset_view(self):
         if self._proc is not None:
             try:
@@ -1014,16 +968,13 @@ class FullScanWidget(QWidget):
         self._reset_post_buttons()
         self.output.set_error("READY", "Enter a target and run the full scan.")
 
-    # =========================
-    # Pipeline
-    # =========================
     def _set_busy(self, busy: bool):
         self.btn_run.setEnabled(not busy)
         self.btn_clean.setEnabled(True)
         self.in_target.setEnabled(not busy)
 
         if busy:
-            self.loading.setRange(0, 0)  # indeterminate (igual QuickScan)
+            self.loading.setRange(0, 0)
             eff = QGraphicsDropShadowEffect(self.loading)
             eff.setBlurRadius(24)
             eff.setOffset(0, 0)
@@ -1217,7 +1168,6 @@ class FullScanWidget(QWidget):
             self.output.set_error("DONE", "Full scan completed.")
             return
 
-        # Render FULL REPORT (cards bonitos, sem CLI)
         try:
             with open(self._scan_json_path, "r", encoding="utf-8") as f:
                 doc = json.load(f)
@@ -1225,7 +1175,6 @@ class FullScanWidget(QWidget):
         except Exception:
             self.output.set_error("DONE", "Full scan completed.")
 
-        # enable post-scan buttons only if outputs exist
         evidence = ROOT / "output" / "evidence" / f"evidence_{self._scan_id}.v1.json"
         paths = ROOT / "output" / "attack" / f"attack_paths_{self._scan_id}.v1.json"
         summary = ROOT / "output" / "attack" / f"attack_summary_{self._scan_id}.v1.json"
@@ -1236,9 +1185,6 @@ class FullScanWidget(QWidget):
             self.btn_open_reports.setEnabled(True)
             self._post_row_wrap.show()
 
-    # =========================
-    # Post-scan signals
-    # =========================
     def _emit_view_paths(self):
         if self._scan_id:
             self.viewAttackPathsRequested.emit(self._scan_id)
@@ -1250,3 +1196,4 @@ class FullScanWidget(QWidget):
     def _emit_open_reports(self):
         if self._scan_id:
             self.openReportsRequested.emit(self._scan_id)
+
