@@ -27,11 +27,8 @@ class AboutView(QWidget):
         root = QVBoxLayout()
         root.setContentsMargins(0, 0, 0, 0)
         root.setSpacing(0)
-        root.setAlignment(Qt.AlignTop)  # <-- ALTERADO (antes era AlignCenter)
+        root.setAlignment(Qt.AlignTop)
 
-        # ==============================
-        # Ícone
-        # ==============================
         icon_label = QLabel()
         icon_label.setAlignment(Qt.AlignHCenter)
 
@@ -47,9 +44,6 @@ class AboutView(QWidget):
         icon_glow.setColor(QColor(124, 255, 158, 95))
         icon_label.setGraphicsEffect(icon_glow)
 
-        # ==============================
-        # Card único
-        # ==============================
         card = QFrame()
         card.setMinimumWidth(960)
         card.setMaximumWidth(1020)
@@ -81,9 +75,7 @@ class AboutView(QWidget):
         content_layout.setContentsMargins(36, 36, 36, 36)
         content_layout.setSpacing(0)
 
-        # ------------------------------
-        # Título
-        # ------------------------------
+  
         title = QLabel("Spektron v1 - Adversarial Attack Path Engine")
         title_font = QFont("Segoe UI")
         title_font.setPixelSize(20)
@@ -95,9 +87,7 @@ class AboutView(QWidget):
         content_layout.addWidget(title)
         content_layout.addSpacing(20)
 
-        # ------------------------------
-        # Parágrafos
-        # ------------------------------
+
         body_font = QFont("Segoe UI")
         body_font.setPixelSize(15)
 
@@ -117,9 +107,6 @@ class AboutView(QWidget):
             content_layout.addWidget(lbl)
             content_layout.addSpacing(14)
 
-        # ------------------------------
-        # Core Capabilities
-        # ------------------------------
         section = QLabel("Core Capabilities")
         section_font = QFont("Segoe UI")
         section_font.setPixelSize(16)
@@ -151,9 +138,6 @@ class AboutView(QWidget):
 
         content_layout.addSpacing(12)
 
-        # ------------------------------
-        # Encerramento
-        # ------------------------------
         closing = QLabel(
             "Spektron is built for clarity, precision and operational decision-making, enabling security teams to eliminate attack chains instead of chasing individual vulnerabilities."
         )
@@ -165,9 +149,6 @@ class AboutView(QWidget):
         content_layout.addWidget(closing)
         content_layout.addSpacing(26)
 
-        # ------------------------------
-        # Footer
-        # ------------------------------
         footer_font = QFont("Segoe UI")
         footer_font.setPixelSize(11)
 
@@ -180,13 +161,11 @@ class AboutView(QWidget):
 
         card.setLayout(content_layout)
 
-        # ==============================
-        # Layout principal ajustado
-        # ==============================
-        root.addSpacing(60)  # controla o quanto sobe (ajuste fino aqui)
+        root.addSpacing(60) 
         root.addWidget(icon_label, alignment=Qt.AlignHCenter)
         root.addSpacing(24)
         root.addWidget(card, alignment=Qt.AlignHCenter)
-        root.addStretch()  # empurra levemente para cima
+        root.addStretch()
 
         self.setLayout(root)
+
