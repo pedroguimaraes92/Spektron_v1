@@ -7,7 +7,7 @@ import sys
 
 try:
     from colorama import Fore, Style
-except Exception:  # pragma: no cover
+except Exception:
     class _Dummy:
         RESET_ALL = ""
     class Fore(_Dummy):
