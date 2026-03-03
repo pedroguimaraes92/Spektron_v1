@@ -8,13 +8,6 @@ from .errors import InputError
 DEFAULT_SCHEME = "https"
 
 def parse_scan_command(s: str) -> Tuple[str, bool]:
-    """Accepts:
-      - "scan <url|host>"
-      - "scan -k <url|host>"
-      - "scan --insecure <url|host>"
-      - "<url|host>"  (treated as scan)
-    Returns: (target_str, insecure_bool)
-    """
     raw = (s or "").strip()
     if not raw:
         raise InputError("target vazio")
@@ -42,7 +35,6 @@ def normalize_target(raw: str) -> Tuple[str, str, str, str, int]:
     if not s:
         raise InputError("target vazio")
 
-    # If user gave host only, assume https.
     if "://" not in s:
         s2 = f"{DEFAULT_SCHEME}://{s}"
     else:
@@ -55,9 +47,7 @@ def normalize_target(raw: str) -> Tuple[str, str, str, str, int]:
         raise InputError("host inválido")
     port = u.port or (443 if scheme == "https" else 80)
 
-    # Preserve path/query/fragment for "parsed_target"
     parsed_target = s2
-    # Normalized = scheme://host[:port?]/ (drop path for consistency)
     norm = f"{scheme}://{host}"
     if (scheme == "https" and port != 443) or (scheme == "http" and port != 80):
         norm = f"{norm}:{port}"
